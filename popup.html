@@ -8,12 +8,14 @@ function createSlot(form) {
       new Slot(parseInt(form.elements[0].value)));
 }
 function moveToSlot(form) {
+  var destSlot = chrome.extension.getBackgroundPage()
+      .getSlot(parseInt(form.elements[0].value));
   chrome.extension.getBackgroundPage().withCurrentSlot(function(slot) {
-    if (slot == undefined) {
+    if (!slot) {
       alert("Doh it doesn't exist");
       return;
     }
-    slot.moveSelectedTab(parseInt(form.elements[0].value));
+    slot.moveSelectedTab(destSlot);
   });
 }
 

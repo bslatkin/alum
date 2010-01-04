@@ -13,7 +13,7 @@ function addSlot(slot) {
   chrome.windows.getCurrent(function(window) {
     slot.windowId = window.id;
     SlotMap[slot.number] = slot;
-    WindowMap[window.id] = slot.number;
+    WindowMap[window.id] = slot;
   });
 }
 
@@ -30,15 +30,23 @@ function withCurrentSlot(callback) {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Init/event handling
+function handleBrowserAction(tab) {
+  chrome.tabs.create({
+    windowId: tab.windowId,
+    url: "popup.html"
+  });
+}
+
 function handleAddWindow(window) {
-  events.push(window);
 }
 
 function handleRemoveWindow(windowId) {
-  events.push(windowId);
 }
 
 function initAlum() {
+  chrome.browserAction.onClicked.addListener(function(tab) {
+    handleBrowserAction(tab);
+  });
   chrome.windows.onCreated.addListener(function(window) {
     handleAddWindow(window);
   });

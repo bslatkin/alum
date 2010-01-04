@@ -11,15 +11,13 @@ Slot.prototype.getTabCount = function(callback) {
   });
 };
 
-Slot.prototype.moveSelectedTab = function(number) {
-  var slot = getSlot(number);
+Slot.prototype.moveSelectedTab = function(slot) {
   chrome.tabs.getSelected(this.windowId, function(tab) {
     slot.getTabCount(function(count) {
-      var moveProperties = {
+      chrome.tabs.move(tab.id, {
         windowId: slot.windowId,
         index: count-1
-      };
-      chrome.tabs.move(tab.tabId, moveProperties);
+      });
     });
   });
 }
