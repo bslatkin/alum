@@ -52,7 +52,7 @@ function initAlum() {
     handleBrowserAction(tab);
   });
   chrome.extension.onRequest.addListener(function(request, sender, unused) {
-    handleHotKey(request.event);
+    handleHotKey(request);
   });
   chrome.windows.onCreated.addListener(function(window) {
     handleAddWindow(window);
