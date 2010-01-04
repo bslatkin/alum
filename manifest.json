@@ -1,0 +1,14 @@
+{
+  "name": "Alum",
+  "version": "0.1",
+  "description": "Window and tabs manager.",
+  "background_page": "background.html",
+  "browser_action": {
+    "default_title": "Alum",
+    "default_icon": "alum.jpg",
+    "popup": "event_log.html"
+  },
+  "permissions": [
+    "tabs"
+  ]
+}
