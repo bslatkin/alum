@@ -1,0 +1,34 @@
+<html>
+<head>
+<script src="alum.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+
+function createSlot(form) {
+  chrome.extension.getBackgroundPage().addSlot(
+      new Slot(parseInt(form.elements[0].value)));
+}
+function moveToSlot(form) {
+  chrome.extension.getBackgroundPage().withCurrentSlot(function(slot) {
+    if (slot == undefined) {
+      alert("Doh it doesn't exist");
+      return;
+    }
+    slot.moveSelectedTab(parseInt(form.elements[0].value));
+  });
+}
+
+</script>
+</head>
+<body>
+<h2>create</h2>
+<form onsubmit="createSlot(this); return false;">
+  <p>Slot number: <input type="text" value="0"></p>
+  <p><input type="submit" value="Create"></p>
+</form>
+<h2>move</h2>
+<form onsubmit="moveToSlot(this); return false;">
+  <p>Slot number: <input type="text" value="0"></p>
+  <p><input type="submit" value="Move"></p>
+</form>
+</body>
+</html>

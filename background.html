@@ -1,6 +1,53 @@
 <html>
 <head>
 <script src="alum.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+
+////////////////////////////////////////////////////////////////////////////////
+// Global data
+
+var SlotMap = {};  // number -> Slot
+var WindowMap = {};  // windowId -> number
+
+function addSlot(slot) {
+  chrome.windows.getCurrent(function(window) {
+    slot.windowId = window.id;
+    SlotMap[slot.number] = slot;
+    WindowMap[window.id] = slot.number;
+  });
+}
+
+function getSlot(number) {
+  return SlotMap[number]
+}
+
+// Runs callback with the Slot instance or undefined.
+function withCurrentSlot(callback) {
+  var windowId = chrome.windows.getCurrent(function(window) {
+    callback(WindowMap[window.id]);
+  });
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Init/event handling
+function handleAddWindow(window) {
+  events.push(window);
+}
+
+function handleRemoveWindow(windowId) {
+  events.push(windowId);
+}
+
+function initAlum() {
+  chrome.windows.onCreated.addListener(function(window) {
+    handleAddWindow(window);
+  });
+  chrome.windows.onRemoved.addListener(function(windowId) {
+    handleRemoveWindow(windowId);
+  });
+}
+
+</script>
 </head>
 <body onload="initAlum();">
 </body>

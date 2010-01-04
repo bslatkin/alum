@@ -1,22 +1,25 @@
-var events = [];
-
-function getEvents() {
-  return events;
+////////////////////////////////////////////////////////////////////////////////
+// Classes
+function Slot(number) {
+  this.number = number;
+  this.windowId = -1;  // unset
 }
 
-function handleAddWindow(window) {
-  events.push(window);
-}
-
-function handleRemoveWindow(windowId) {
-  events.push(windowId);
-}
-
-function initAlum() {
-  chrome.windows.onCreated.addListener(function(window) {
-    handleAddWindow(window);
+Slot.prototype.getTabCount = function(callback) {
+  chrome.tabs.getAllInWindow(this.windowId, function(tabs) {
+    callback(tabs.length);
   });
-  chrome.windows.onRemoved.addListener(function(windowId) {
-    handleRemoveWindow(windowId);
+};
+
+Slot.prototype.moveSelectedTab = function(number) {
+  var slot = getSlot(number);
+  chrome.tabs.getSelected(this.windowId, function(tab) {
+    slot.getTabCount(function(count) {
+      var moveProperties = {
+        windowId: slot.windowId,
+        index: count-1
+      };
+      chrome.tabs.move(tab.tabId, moveProperties);
+    });
   });
 }

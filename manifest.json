@@ -6,7 +6,7 @@
   "browser_action": {
     "default_title": "Alum",
     "default_icon": "alum.jpg",
-    "popup": "event_log.html"
+    "popup": "popup.html"
   },
   "permissions": [
     "tabs"
