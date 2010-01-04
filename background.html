@@ -37,6 +37,10 @@ function handleBrowserAction(tab) {
   });
 }
 
+function handleHotKey(event) {
+  window.alert("key is " + event);
+}
+
 function handleAddWindow(window) {
 }
 
@@ -46,6 +50,9 @@ function handleRemoveWindow(windowId) {
 function initAlum() {
   chrome.browserAction.onClicked.addListener(function(tab) {
     handleBrowserAction(tab);
+  });
+  chrome.extension.onRequest.addListener(function(request, sender, unused) {
+    handleHotKey(request.event);
   });
   chrome.windows.onCreated.addListener(function(window) {
     handleAddWindow(window);

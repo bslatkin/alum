@@ -7,7 +7,11 @@
     "default_title": "Alum",
     "default_icon": "alum.jpg"
   },
-  "permissions": [
-    "tabs"
-  ]
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*", "file:///*", "ftp://*/*"],
+      "js": ["hotkeys.js"]
+    }
+  ],
+  "permissions": ["tabs"]
 }
