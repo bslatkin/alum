@@ -11,12 +11,12 @@ Slot.prototype.getTabCount = function(callback) {
   });
 };
 
-Slot.prototype.moveSelectedTab = function(slot) {
+Slot.prototype.moveSelectedTab = function(destSlot) {
   chrome.tabs.getSelected(this.windowId, function(tab) {
-    slot.getTabCount(function(count) {
+    destSlot.getTabCount(function(count) {
       chrome.tabs.move(tab.id, {
-        windowId: slot.windowId,
-        index: count-1
+        windowId: destSlot.windowId,
+        index: count+1
       });
     });
   });
