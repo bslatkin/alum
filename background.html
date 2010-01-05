@@ -9,25 +9,6 @@
 var SlotMap = {};  // number -> Slot
 var WindowMap = {};  // windowId -> number
 
-function addSlot(slot) {
-  chrome.windows.getCurrent(function(window) {
-    slot.windowId = window.id;
-    SlotMap[slot.number] = slot;
-    WindowMap[window.id] = slot;
-  });
-}
-
-function getSlot(number) {
-  return SlotMap[number]
-}
-
-// Runs callback with the Slot instance or undefined.
-function withCurrentSlot(callback) {
-  var windowId = chrome.windows.getCurrent(function(window) {
-    callback(WindowMap[window.id]);
-  });
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // Init/event handling
 function handleBrowserAction(tab) {
@@ -38,7 +19,7 @@ function handleBrowserAction(tab) {
 }
 
 function handleHotKey(event) {
-  window.alert("key is " + event);
+  // TODO: Add some dummy hotkeys.
 }
 
 function handleAddWindow(window) {
