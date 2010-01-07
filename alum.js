@@ -40,8 +40,7 @@ function Layout(x, y, width, height) {
 }
 
 Layout.fromWindow = function(window) {
-  return new Layout(lastWindow.left, lastWindow.top,
-                    lastWindow.width, lastWindow.height);
+  return new Layout(window.left, window.top, window.width, window.height);
 }
 
 ////// Slot
@@ -67,24 +66,23 @@ Slot.get = function(number) {
 }
 
 Slot.rotate = function(positive) {
-  if (bg().SlotMap.length == 0) {
+  if (Slot.count() == 0) {
     return;
   }
   Slot.withSortedWindows(function(windowArray) {
     // Presumably view 0 is the most important, so we do not want it to be
     // overlapped during any rotation animations, so move it's successor first.
-    var step = positive ? 1 : -1;
-    var from = 0 - step;
-    var to = 0;
     var count = Slot.count();
-    var finalLayout = Layout.fromWindow(windowArray[from % count]);
-
-    for (var i = 1; i <= count; ++i) {
-      Slot.get(to).setLayout(Layout.fromWindow(windowArray[from]));
-      from = (from + (i * step)) % count;
-      to = (from + step) % count;
+    var step = positive ? 1 : -1;
+    var from = 0;
+    var to = (step + count) % count;
+    var finalLayout = Layout.fromWindow(windowArray[0]);
+    for (var i = 1; i < count; ++i) {
+      Slot.get(from).setLayout(Layout.fromWindow(windowArray[to]));
+      from = ((step * i) + count) % count;
+      to = ((step * (i + 1)) + count) % count;
     }
-    Slot.get(to).setLayout(finalLayout);
+    Slot.get(from).setLayout(finalLayout);
   });
 
   // TODO: Preserve focus on the formerly focused window/tab? Maybe the last
@@ -93,7 +91,7 @@ Slot.rotate = function(positive) {
 }
 
 Slot.withSortedWindows = function(callback) {
-  chrome.windows.getAll(function(windowArray) {
+  chrome.windows.getAll({populate: false}, function(windowArray) {
     // Sort windowArray by slots, ignoring unslotted windows.
     var sortedWindows = [];
     for (var i = 0; i < windowArray.length; ++i) {
