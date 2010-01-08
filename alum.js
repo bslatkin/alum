@@ -39,17 +39,17 @@ function Layout(x, y, width, height) {
   this.height = height;
 }
 
-Layout.fromWindow = function(window) {
+Layout.buildFromWindow = function(window) {
   return new Layout(window.left, window.top, window.width, window.height);
 }
 
-Layout.prototype.apply = function(windowId) {
+Layout.prototype.apply = function(windowId, applyDone) {
   chrome.windows.update(windowId, {
     left: this.x,
     top: this.y,
     width: this.width,
     height: this.height
-  });
+  }, applyDone);
 }
 
 ////// Slot
@@ -80,41 +80,42 @@ Slot.get = function(number) {
 }
 
 Slot.rotate = function(positive) {
-  if (Slot.count() == 0) {
+  var count = Slot.count();
+  if (count == 0) {
     return;
   }
   withForemostTab(function(frontWindow, frontTab) {
     var frontSlot = bg().WindowMap[frontWindow.id];
 
-    Slot.withSortedWindows(function(windowArray) {
-      // Presumably view 0 is the most important, so we do not want it to be
-      // overlapped during any rotation animations, so move it's successor first.
-      var count = Slot.count();
-      var step = positive ? 1 : -1;
-      var newWindowIds = [];
-      for (var i = 0; i < count; ++i) {
-        var from = ((step * i) + count) % count;
-        var to = ((step * (i + 1)) + count) % count;
-        var fromWindowId = windowArray[from].id;
-        Layout.fromWindow(windowArray[to]).apply(fromWindowId);
-        newWindowIds[to] = fromWindowId;
+    Slot.withSortedWindows(function(fromWindowArray) {
+      var toWindowArray = fromWindowArray.slice();
+      if (positive) {
+        toWindowArray.push(toWindowArray.shift());  // 0 -> N-1
+      } else {
+        toWindowArray.unshift(toWindowArray.pop());  // N-1 -> 0
       }
-      // Update each slot with its new window ID.
-      for (var j = 0; j < count; ++j) {
-        Slot.get(j).windowId = newWindowIds[j];
+
+      var popAndUpdate = function(index) {
+        if (index >= fromWindowArray.length) {
+          // Recursion done. Update each slot with its new window ID.
+          for (var j = 0; j < count; ++j) {
+            Slot.get(j).windowId = toWindowArray[j].id;
+          }
+          // Refocus the originally focused slot.
+          if (typeof(frontSlot) != "undefined") {
+            console.log("focusing slot: " + frontSlot.number + ", window: " + frontSlot.windowId);
+            frontSlot.focus();
+          }
+        } else {
+          Layout.buildFromWindow(toWindowArray[index])
+              .apply(fromWindowArray[index].id, function(window) {
+                popAndUpdate(index+1);
+              });
+        }
       }
+      popAndUpdate(0);
     });
-
-    // Preserve focus on previously focused window.
-    if (typeof(frontSlot) != "undefined") {
-      console.log("focusing slot: " + frontSlot.number + ", window: " + frontSlot.windowId);
-      frontSlot.focus();
-    }
   });
-
-  // TODO: Preserve focus on the formerly focused window/tab? Maybe the last
-  // one to move should be the currently focused on? but then it may go behind
-  // some other window in the meantime, which is weird.
 }
 
 Slot.withSortedWindows = function(callback) {
@@ -142,8 +143,19 @@ Slot.prototype.appendTab = function(tab) {
 
 Slot.prototype.focus = function() {
   chrome.tabs.getSelected(this.windowId, function(tab) {
-    chrome.tabs.executeScript(tab.id, {code: "window.focus();"});
+    chrome.tabs.executeScript(tab.id, {code: "window.alert('this should raise');"});
+    //chrome.tabs.executeScript(tab.id, {code: "window.focus();"});
   });
+}
+
+Slot.prototype.next = function() {
+  var count = Slot.count();
+  var nextNumber = (this.number + 1) % count;
+}
+
+Slot.prototype.previous = function() {
+  var count = Slot.count();
+  var nextNumber = (this.number - 1 + count) % count;
 }
 
 Slot.prototype.getTabCount = function(callback) {
