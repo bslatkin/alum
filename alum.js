@@ -142,20 +142,23 @@ Slot.prototype.appendTab = function(tab) {
 }
 
 Slot.prototype.focus = function() {
+  console.log('this works here');
   chrome.tabs.getSelected(this.windowId, function(tab) {
-    chrome.tabs.executeScript(tab.id, {code: "window.alert('this should raise');"});
-    //chrome.tabs.executeScript(tab.id, {code: "window.focus();"});
+    console.log("found tab " + tab.id);
+    chrome.tabs.sendRequest(tab.id, {}, function(response) {
+      console.log('received: ' + response);
+    });
   });
 }
 
 Slot.prototype.next = function() {
   var count = Slot.count();
-  var nextNumber = (this.number + 1) % count;
+  return (this.number + 1) % count;
 }
 
 Slot.prototype.previous = function() {
   var count = Slot.count();
-  var nextNumber = (this.number - 1 + count) % count;
+  return (this.number - 1 + count) % count;
 }
 
 Slot.prototype.getTabCount = function(callback) {

@@ -10,3 +10,14 @@ document.addEventListener("keydown", function(event) {
     });
   }
 }, false);
+
+chrome.extension.onRequest.addListener(
+  function(request, sender, sendResponse) {
+    console.log('got the event! ' + window.focus);
+    try {
+      window.focus();
+    } catch (e) {
+      console.log('exception: ' + e);
+    }
+    sendResponse({'foo': 'got it!'});
+  });

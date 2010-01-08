@@ -15,7 +15,10 @@ function moveToSlot(form) {
 function rotateSlots() {
   Slot.rotate(true);
 }
-
+function focusSlot(form) {
+  var slot = Slot.get(parseInt(form.elements[0].value));
+  slot.focus();
+}
 </script>
 </head>
 <body>
@@ -35,6 +38,12 @@ function rotateSlots() {
 <h2>rotate</h2>
 <form onsubmit="rotateSlots(); return false;">
   <p><input type="submit" value="Rotate"></p>
+</form>
+
+<h2>focus</h2>
+<form onsubmit="focusSlot(this); return false;">
+  <p>Slot number: <input type="text" value="0"></p>
+  <p><input type="submit" value="Focus"></p>
 </form>
 
 </body>
