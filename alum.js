@@ -145,9 +145,21 @@ Slot.prototype.focus = function() {
   console.log('this works here');
   chrome.tabs.getSelected(this.windowId, function(tab) {
     console.log("found tab " + tab.id);
-    chrome.tabs.sendRequest(tab.id, {}, function(response) {
-      console.log('received: ' + response);
-    });
+    try {
+      chrome.tabs.executeScript(
+        tab.id,
+        {
+          code: 'window.alert("doot");'
+        },
+        function() {
+          console.log("all done focusing");
+        })
+    } catch (e) {
+      console.log('Exception doing that: ' + e);
+    }
+    // chrome.tabs.sendRequest(tab.id, {}, function(response) {
+    //   console.log('received: ' + response);
+    // });
   });
 }
 
