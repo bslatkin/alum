@@ -30,8 +30,11 @@
   var numRows = 3;
   var gridWidth = Math.floor(diagramWidth / numColumns);
   var gridHeight = Math.floor(diagramHeight / numRows);
+  // Readjust total layout size for weight floating point values.
+  diagramWidth = numColumns * gridWidth;
+  diagramHeight = numRows * gridHeight;
+
   var gridColumns = [];
-  console.log("grid width: " + gridWidth + ", gridHeight: " + gridHeight);
 
   function gridPixelsX(x) {
     return (gridWidth) * x;
@@ -42,8 +45,8 @@
   }
 
   $(document).ready(function() {
-    $("#gridcontainer").css({"width": diagramWidth + 2,
-                             "height": diagramHeight + 1,
+    $("#gridcontainer").css({"width": diagramWidth,
+                             "height": diagramHeight,
                              "position": "absolute"});
 
     for (var x = 0; x < numColumns; ++x) {
@@ -54,8 +57,8 @@
             .addClass("slot")
             .css({"width": (gridWidth-2) + "px",
                   "height": (gridHeight-2) + "px",
-                  "left": gridPixelsX(x) + 1,
-                  "top": gridPixelsY(y) + 1,
+                  "left": gridPixelsX(x),
+                  "top": gridPixelsY(y),
                   "position": "absolute"})
             .draggable({"grid": [gridWidth, gridHeight],
                         "containment": "parent",
