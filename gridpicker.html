@@ -42,14 +42,34 @@
   diagramHeight = numRows * gridHeight;
   var gridColumns = [];
 
+  // Convert grid slot to pixel location.
   function gridPixelsX(x) {
     return (gridWidth) * x;
   }
-
   function gridPixelsY(y) {
     return (gridHeight) * y;
   }
 
+  // Convert pixel location to grid slots. Returns [{x: N, y: M}, ...]
+  function getGridSlots(top, left, bottom, right) {
+    var foundSlots = [];
+    for (var x = 0; x < numColumns; ++x) {
+      for (var y = 0; y < numRows; ++y) {
+        var pixelX = gridPixelsX(x);
+        var pixelY = gridPixelsY(y);
+        console.log("comparing pixelxy=" + pixelX + "," + pixelY + "to: " +
+                    "left=" + left + " top=" + top + " right=" + right + " bottom=" + bottom);
+        if (pixelY >= top && pixelY < bottom &&
+            pixelX >= left && pixelY < right) {
+          console.log("overlapping: x=" + x + ", y=" + y);
+          foundSlots.push({"x": x, "y": y});
+        }
+      }
+    }
+    return foundSlots;
+  }
+
+  ///// Event handling
   function startDrag(event, ui) {
     console.log("start x=" + ui.helper.data("x") + ", y=" + ui.helper.data("y"));
     ui.helper.draggable("option", "zIndex", 2)
@@ -63,6 +83,11 @@
     ui.helper.draggable("option", "zIndex", 1)
         .addClass("slot-static")
         .removeClass("slot-dragging");
+    var gridSlots = getGridSlots(
+        position.top,
+        position.left,
+        position.top + ui.helper.innerHeight(),
+        position.left + ui.helper.innerWidth());
   }
 
   $(document).ready(function() {
