@@ -57,7 +57,7 @@
       for (var y = 0; y < numRows; ++y) {
         var pixelX = gridPixelsX(x);
         var pixelY = gridPixelsY(y);
-        console.log("comparing pixelxy=" + pixelX + "," + pixelY + "to: " +
+        console.log("comparing pixelxy=" + pixelX + "," + pixelY + " to: " +
                     "left=" + left + " top=" + top + " right=" + right + " bottom=" + bottom);
         if (pixelY >= top && pixelY < bottom &&
             pixelX >= left && pixelY < right) {
@@ -83,6 +83,8 @@
     ui.helper.draggable("option", "zIndex", 1)
         .addClass("slot-static")
         .removeClass("slot-dragging");
+    console.log("inner width: " + ui.helper.innerWidth() +
+                ", inner height: " + ui.helper.innerHeight());
     var gridSlots = getGridSlots(
         position.top,
         position.left,
