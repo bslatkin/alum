@@ -3,16 +3,19 @@
 
 <style type="text/css">
 
-.draggable {
-  width: 90px;
-  height: 80px;
-  padding: 5px;
-  float: left;
-  margin: 0 10px 10px 0;
-  font-size: .9em;
+.slot {
   cursor: move;
+  background-color: #aaa;
+  border: 1px solid black;
+  padding: 0px;
+  marign: 0px;
 }
-.ui-widget-content p { margin: 0; }
+
+#gridcontainer {
+  margin: 0;
+  padding: 0px;
+  border: 1px solid red;
+}
 
 </style>
 <link type="text/css" href="jquery/css/smoothness/jquery-ui-1.7.2.custom.css" rel="stylesheet" />	
@@ -21,36 +24,48 @@
 
 <script type="text/javascript">
   // inputs
-  var diagramWidth = 400;
-  var diagramHeight = 300;
-  var numColumns = 2;
+  var diagramWidth = 500;
+  var diagramHeight = 250;
+  var numColumns = 4;
   var numRows = 3;
-  var gridWidth = diagramWidth / numColumns;
-  var gridHeight = diagramHeight / numRows;
+  var gridWidth = Math.floor(diagramWidth / numColumns);
+  var gridHeight = Math.floor(diagramHeight / numRows);
   var gridColumns = [];
+  console.log("grid width: " + gridWidth + ", gridHeight: " + gridHeight);
 
   function gridPixelsX(x) {
-    return gridWidth * x;
+    return (gridWidth) * x;
   }
 
   function gridPixelsY(y) {
-    return gridHeight * y;
+    return (gridHeight) * y;
   }
 
   $(document).ready(function() {
+    $("#gridcontainer").css({"width": diagramWidth + 2,
+                             "height": diagramHeight + 1,
+                             "position": "absolute"});
+
     for (var x = 0; x < numColumns; ++x) {
       var row = []
-      gridColums[x] = row;
+      gridColumns[x] = row;
       for (var y = 0; y < numRows; ++y) {
         $("<div style='draggable ui-widget-header'>" + x + ", " + y + "</div>")
-            .css({"width": gridWidth + "px",
-                  "height": gridHeight + "px",
-                  "left": gridPixelsX(x),
-                  "top": gridPixelsY(y),
-                  "position": "absolute",
-                  "border": "1px solid black"})
-            .draggable({"grid": [gridWidth, gridHeight]})
-            .resizable({"grid": [gridWidth, gridHeight]})
+            .addClass("slot")
+            .css({"width": (gridWidth-2) + "px",
+                  "height": (gridHeight-2) + "px",
+                  "left": gridPixelsX(x) + 1,
+                  "top": gridPixelsY(y) + 1,
+                  "position": "absolute"})
+            .draggable({"grid": [gridWidth, gridHeight],
+                        "containment": "parent",
+                        "opacity": 0.70})
+            .resizable({"grid": [gridWidth, gridHeight],
+                        "minWidth": gridWidth,
+                        "minHeight": gridHeight,
+                        "maxWidth": diagramWidth,
+                        "maxHeight": diagramHeight,
+                        "containment": "parent"})
             .appendTo("#gridcontainer");
         row[y] = {
           slot: null
