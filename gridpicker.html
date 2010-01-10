@@ -5,10 +5,17 @@
 
 .slot {
   cursor: move;
-  background-color: #aaa;
   border: 1px solid black;
   padding: 0px;
   marign: 0px;
+}
+
+.slot-static {
+  background-color: #ccc;
+}
+
+.slot-dragging {
+  background-color: #aaa;
 }
 
 #gridcontainer {
@@ -33,7 +40,6 @@
   // Readjust total layout size for weight floating point values.
   diagramWidth = numColumns * gridWidth;
   diagramHeight = numRows * gridHeight;
-
   var gridColumns = [];
 
   function gridPixelsX(x) {
@@ -42,6 +48,21 @@
 
   function gridPixelsY(y) {
     return (gridHeight) * y;
+  }
+
+  function startDrag(event, ui) {
+    console.log("start x=" + ui.helper.data("x") + ", y=" + ui.helper.data("y"));
+    ui.helper.draggable("option", "zIndex", 2)
+        .addClass("slot-dragging")
+        .removeClass("slot-static");
+  }
+
+  function stopDrag(event, ui) {
+    var position = ui.helper.position();
+    console.log("stop x=" + position.left + ", y=" + position.top);
+    ui.helper.draggable("option", "zIndex", 1)
+        .addClass("slot-static")
+        .removeClass("slot-dragging");
   }
 
   $(document).ready(function() {
@@ -53,8 +74,12 @@
       var row = []
       gridColumns[x] = row;
       for (var y = 0; y < numRows; ++y) {
+        // Create a grid of draggables.
         $("<div style='draggable ui-widget-header'>" + x + ", " + y + "</div>")
             .addClass("slot")
+            .addClass("slot-static")
+            .data("x", x)
+            .data("y", y)
             .css({"width": (gridWidth-2) + "px",
                   "height": (gridHeight-2) + "px",
                   "left": gridPixelsX(x),
@@ -62,7 +87,9 @@
                   "position": "absolute"})
             .draggable({"grid": [gridWidth, gridHeight],
                         "containment": "parent",
-                        "opacity": 0.70})
+                        "zIndex": 1,
+                        "start": startDrag,
+                        "stop": stopDrag})
             .resizable({"grid": [gridWidth, gridHeight],
                         "minWidth": gridWidth,
                         "minHeight": gridHeight,
