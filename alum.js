@@ -58,8 +58,7 @@ function Slot(number) {
   this.windowId = -1;  // unset
 }
 
-// TODO: Rename to addCurrent.
-Slot.add = function(slot) {
+Slot.addCurrent = function(slot) {
   chrome.windows.getCurrent(function(window) {
     slot.windowId = window.id;
     Slot.set(slot);

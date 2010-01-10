@@ -4,7 +4,7 @@
 <script type="text/javascript" charset="utf-8">
 
 function createSlot(form) {
-  Slot.add(new Slot(parseInt(form.elements[0].value)));
+  Slot.addCurrent(new Slot(parseInt(form.elements[0].value)));
 }
 function moveToSlot(form) {
   var slot = Slot.get(parseInt(form.elements[0].value));
