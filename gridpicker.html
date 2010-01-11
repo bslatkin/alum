@@ -1,9 +1,9 @@
 <html>
 <head>
-<title>Alum options</title>
+<title>Alum extension options</title>
 <style type="text/css">
 
-h1 {
+h1, h3 {
   font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
 }
 
@@ -12,6 +12,9 @@ h1 {
   border: 0;
   padding: 0;
   marign: 0;
+  text-align: center;
+  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  font-size: 20px;
 }
 
 .slot-static {
@@ -71,6 +74,7 @@ h1 {
   diagramWidth = numColumns * gridWidth;
   diagramHeight = numRows * gridHeight;
   var gridColumns = [];
+  var activeSlots = numRows * numColumns;
 
   // Convert grid slot to pixel location.
   function gridPixelsX(x) {
@@ -91,15 +95,89 @@ h1 {
             top <= pixelY &&
             right >= pixelX &&
             left <= pixelX) {
-          console.log("pixelxy=" + pixelX + "," + pixelY + " to: " +
-                      "left=" + left + " top=" + top +
-                      " right=" + right + " bottom=" + bottom +
-                      "; overlapping: x=" + x + ", y=" + y);
           foundSlots.push({"x": x, "y": y});
         }
       }
     }
     return foundSlots;
+  }
+
+  function createSlot(x, y, number) {
+    var slot = $("<div><span class='slotvalue'>" + number + "</span></div>");
+    slot.addClass("slot")
+        .addClass("slot-static")
+        .addClass("ui-state-default")
+        .data("overlap", [{"x": x, "y": y}])
+        .css({"width": (gridWidth-2) + "px",
+              "height": (gridHeight-2) + "px",
+              "left": gridPixelsX(x),
+              "top": gridPixelsY(y),
+              "position": "absolute",
+              "line-height": (gridHeight-2) + "px"})
+        .draggable({"grid": [gridWidth, gridHeight],
+                    "containment": "parent",
+                    "zIndex": 0,
+                    "start": startDragOrResize,
+                    "stop": stopDragOrResize})
+        .resizable({"grid": [gridWidth, gridHeight],
+                    "minWidth": gridWidth,
+                    "minHeight": gridHeight,
+                    "maxWidth": diagramWidth,
+                    "maxHeight": diagramHeight,
+                    "containment": "parent",
+                    "start": startDragOrResize,
+                    "stop": stopDragOrResize})
+        .appendTo("#gridcontainer");
+    return slot;
+  }
+
+  function resetGrid(columns, rows) {
+    numRows = rows;
+    numColumns = columns;
+    gridColumns = [];
+    gridWidth = Math.floor(diagramWidth / numColumns);
+    gridHeight = Math.floor(diagramHeight / numRows);
+    // Readjust total layout size for weight floating point values.
+    diagramWidth = numColumns * gridWidth;
+    diagramHeight = numRows * gridHeight;
+
+    var children = $("#gridcontainer").children(".slot");
+    for (var i = 0; i < children.length; ++i) {
+      $(children[i]).remove();
+    }
+
+    $("#gridcontainer").css({"width": diagramWidth,
+                             "height": diagramHeight,
+                             "position": "absolute"});
+
+    for (var x = 0; x < numColumns; ++x) {
+      var row = []
+      gridColumns[x] = row;
+      for (var y = 0; y < numRows; ++y) {
+        slot = createSlot(x, y, "" + (1 + x + (numRows-1)*y));
+        row[y] = slot;
+      }
+    }
+  }
+
+  function renumberSlots() {
+    var allSlots = $(".slotvalue");
+    function sortSlots(a, b) {
+      return parseInt($(a).text()) - parseInt($(b).text());
+    }
+    allSlots.sort(sortSlots);
+
+    var nextNumber = activeSlots;
+    for (var i = allSlots.length-1; i >= 0; --i) {
+      var number = parseInt($(allSlots[i]).text());
+      if (number == nextNumber) {
+        // Current slot number is less than the next one to assign, which
+        // means the hole has been filled already.
+        return;
+      }
+      $(allSlots[i]).text(nextNumber);
+      nextNumber--;
+    }
   }
 
   ///// Event handling
@@ -141,8 +219,8 @@ h1 {
             if (j == 0) {
               // The first item slot removal will be animated.
               slot.hide("puff", {}, 200, function() {
+                activeSlots--;
                 $(this).remove();  // Clean up the dom.
-                console.log("Removing: " + $(this).text());
               });
             }
           }
@@ -153,63 +231,7 @@ h1 {
 
     // Save the new locations to clear it the next time the object is changed.
     ui.helper.data("overlap", gridSlots);
-  }
-
-  function createSlot(x, y) {
-    var slot = $("<div>" + x + ", " + y + "</div>");
-    slot.addClass("slot")
-        .addClass("slot-static")
-        .addClass("ui-state-default")
-        .data("overlap", [{"x": x, "y": y}])
-        .css({"width": (gridWidth-2) + "px",
-              "height": (gridHeight-2) + "px",
-              "left": gridPixelsX(x),
-              "top": gridPixelsY(y),
-              "position": "absolute"})
-        .draggable({"grid": [gridWidth, gridHeight],
-                    "containment": "parent",
-                    "zIndex": 0,
-                    "start": startDragOrResize,
-                    "stop": stopDragOrResize})
-        .resizable({"grid": [gridWidth, gridHeight],
-                    "minWidth": gridWidth,
-                    "minHeight": gridHeight,
-                    "maxWidth": diagramWidth,
-                    "maxHeight": diagramHeight,
-                    "containment": "parent",
-                    "start": startDragOrResize,
-                    "stop": stopDragOrResize})
-        .appendTo("#gridcontainer");
-    return slot;
-  }
-
-  function resetGrid(columns, rows) {
-    numRows = rows;
-    numColumns = columns;
-    gridColumns = [];
-    gridWidth = Math.floor(diagramWidth / numColumns);
-    gridHeight = Math.floor(diagramHeight / numRows);
-    // Readjust total layout size for weight floating point values.
-    diagramWidth = numColumns * gridWidth;
-    diagramHeight = numRows * gridHeight;
-
-    var children = $("#gridcontainer").children(".slot");
-    for (var i = 0; i < children.length; ++i) {
-      $(children[i]).remove();
-    }
-
-    $("#gridcontainer").css({"width": diagramWidth,
-                             "height": diagramHeight,
-                             "position": "absolute"});
-
-    for (var x = 0; x < numColumns; ++x) {
-      var row = []
-      gridColumns[x] = row;
-      for (var y = 0; y < numRows; ++y) {
-        slot = createSlot(x, y);
-        row[y] = slot;
-      }
-    }
+    renumberSlots();
   }
 
   $(document).ready(function() {
@@ -237,7 +259,7 @@ h1 {
             for (var x = 0; x < numColumns; ++x) {
               for (var y = 0; y < numRows; ++y) {
                 if (gridColumns[x][y] == null) {
-                  gridColumns[x][y] = createSlot(x, y);
+                  gridColumns[x][y] = createSlot(x, y, activeSlots++);
                   return false;
                 }
               }
@@ -285,7 +307,8 @@ h1 {
 </head>
 <body>
 
-<h1>Alum options</h1>
+<h1>Alum extension options</h1>
+<h3>Grid layout</h3>
 
 <div id="gridcontainer"></div>
 
