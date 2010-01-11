@@ -91,6 +91,40 @@
         position.left,
         position.top + ui.helper.innerHeight(),
         position.left + ui.helper.innerWidth());
+
+    // Clear the old positions.
+    var oldSlots = ui.helper.data("overlap");
+    for (var i = 0; i < oldSlots.length; ++i) {
+      var overlap = oldSlots[i];
+      gridColumns[overlap.x][overlap.y] = null;
+    }
+
+    // Remove/hide overlapped slots and point at the new one.
+    for (var i = 0; i < gridSlots.length; ++i) {
+      var newOverlap = gridSlots[i];
+      var slot = gridColumns[newOverlap.x][newOverlap.y];
+      // Remove *all* slots this element overlaps.
+      if (slot) {
+        var slotOverlaps = slot.data("overlap");
+        for (var j = 0; j < slotOverlaps.length; ++j) {
+          var itemOverlap = slotOverlaps[j];
+          var itemSlot = gridColumns[itemOverlap.x][itemOverlap.y];
+          if (itemSlot) {
+            gridColumns[itemOverlap.x][itemOverlap.y] = null;
+            if (j == 0) {
+              // The first item slot through will be animated.
+              slot.hide("puff", {}, 200, function() {
+                slot.remove();
+              });
+            }
+          }
+        }
+      }
+      gridColumns[newOverlap.x][newOverlap.y] = ui.helper;
+    }
+
+    // Save the new locations to clear it the next time the object is changed.
+    ui.helper.data("overlap", gridSlots);
   }
 
   $(document).ready(function() {
@@ -103,11 +137,10 @@
       gridColumns[x] = row;
       for (var y = 0; y < numRows; ++y) {
         // Create a grid of draggables.
-        $("<div style='draggable ui-widget-header'>" + x + ", " + y + "</div>")
-            .addClass("slot")
+        var slot = $("<div style=>" + x + ", " + y + "</div>");
+        slot.addClass("slot")
             .addClass("slot-static")
-            .data("x", x)
-            .data("y", y)
+            .data("overlap", [{"x": x, "y": y}])
             .css({"width": (gridWidth-2) + "px",
                   "height": (gridHeight-2) + "px",
                   "left": gridPixelsX(x),
@@ -127,9 +160,7 @@
                         "start": startDragOrResize,
                         "stop": stopDragOrResize})
             .appendTo("#gridcontainer");
-        row[y] = {
-          slot: null
-        }
+        row[y] = slot;
       }
     }
   });
