@@ -3,6 +3,7 @@
   "version": "0.1",
   "description": "Window and tabs manager.",
   "background_page": "background.html",
+  "options_page": "gridpicker.html",
   "browser_action": {
     "default_title": "Alum",
     "default_icon": "alum.jpg"

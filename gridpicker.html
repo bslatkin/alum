@@ -1,7 +1,11 @@
 <html>
 <head>
-
+<title>Alum options</title>
 <style type="text/css">
+
+h1 {
+  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+}
 
 .slot {
   cursor: move;
@@ -209,11 +213,12 @@
   }
 
   $(document).ready(function() {
+    // TODO: Save and restore preference with local storage API!
     // Create a grid of draggables.
     resetGrid(numRows, numColumns);
 
     // Create a new window button.
-    $("<button id='newbutton' type='submit'>New Window</button>")
+    $("<button id='newbutton' type='submit'>Add Window</button>")
         .addClass("ui-state-default")
         .addClass("ui-corner-all")
         .addClass("ui-priority-primary")
@@ -242,7 +247,7 @@
         .prependTo("#shelfcontainer");
 
     // Add Grid setting button.
-    $("<button id='setgridbutton' type='submit'>Set Grid</button>")
+    $("<button id='setgridbutton' type='submit'>Reset Grid</button>")
         .addClass("ui-state-default")
         .addClass("ui-corner-all")
         .addClass("ui-priority-primary")
@@ -280,14 +285,13 @@
 </head>
 <body>
 
-<!-- list on the right to select the different numbers -->
-<!-- dialog to change the numbers of each with a button -->
+<h1>Alum options</h1>
 
 <div id="gridcontainer"></div>
 
 <div id="shelfcontainer">
-  Columns <input id="gridwidth" type="text" />
-  Rows <input id="gridheight" type="text" />
+  Columns <input id="gridwidth" type="text" value="4" />
+  Rows <input id="gridheight" type="text" value="3" />
 </div>
 
 </body>
