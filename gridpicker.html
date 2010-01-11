@@ -12,10 +12,12 @@
 
 .slot-static {
   background-color: #ccc;
+  z-index: 1;
 }
 
 .slot-dragging {
   background-color: #aaa;
+  z-index: 10000;
 }
 
 #gridcontainer {
@@ -24,7 +26,12 @@
   border: 1px solid red;
 }
 
+#shelfcontainer {
+  
+}
+
 </style>
+
 <link type="text/css" href="jquery/css/smoothness/jquery-ui-1.7.2.custom.css" rel="stylesheet" />	
 <script type="text/javascript" src="jquery/js/jquery-1.3.2.min.js"></script>
 <script type="text/javascript" src="jquery/js/jquery-ui-1.7.2.custom.min.js"></script>
@@ -57,11 +64,14 @@
       for (var y = 0; y < numRows; ++y) {
         var pixelX = gridPixelsX(x);
         var pixelY = gridPixelsY(y);
-        console.log("comparing pixelxy=" + pixelX + "," + pixelY + " to: " +
-                    "left=" + left + " top=" + top + " right=" + right + " bottom=" + bottom);
-        if (pixelY >= top && pixelY < bottom &&
-            pixelX >= left && pixelY < right) {
-          console.log("overlapping: x=" + x + ", y=" + y);
+        if (bottom >= pixelY &&
+            top <= pixelY &&
+            right >= pixelX &&
+            left <= pixelX) {
+          console.log("pixelxy=" + pixelX + "," + pixelY + " to: " +
+                      "left=" + left + " top=" + top +
+                      " right=" + right + " bottom=" + bottom +
+                      "; overlapping: x=" + x + ", y=" + y);
           foundSlots.push({"x": x, "y": y});
         }
       }
@@ -70,21 +80,12 @@
   }
 
   ///// Event handling
-  function startDrag(event, ui) {
-    console.log("start x=" + ui.helper.data("x") + ", y=" + ui.helper.data("y"));
-    ui.helper.draggable("option", "zIndex", 2)
-        .addClass("slot-dragging")
-        .removeClass("slot-static");
+  function startDragOrResize(event, ui) {
+    ui.helper.addClass("slot-dragging").removeClass("slot-static");
   }
-
-  function stopDrag(event, ui) {
+  function stopDragOrResize(event, ui) {
     var position = ui.helper.position();
-    console.log("stop x=" + position.left + ", y=" + position.top);
-    ui.helper.draggable("option", "zIndex", 1)
-        .addClass("slot-static")
-        .removeClass("slot-dragging");
-    console.log("inner width: " + ui.helper.innerWidth() +
-                ", inner height: " + ui.helper.innerHeight());
+    ui.helper.addClass("slot-static").removeClass("slot-dragging");
     var gridSlots = getGridSlots(
         position.top,
         position.left,
@@ -114,15 +115,17 @@
                   "position": "absolute"})
             .draggable({"grid": [gridWidth, gridHeight],
                         "containment": "parent",
-                        "zIndex": 1,
-                        "start": startDrag,
-                        "stop": stopDrag})
+                        "zIndex": 0,
+                        "start": startDragOrResize,
+                        "stop": stopDragOrResize})
             .resizable({"grid": [gridWidth, gridHeight],
                         "minWidth": gridWidth,
                         "minHeight": gridHeight,
                         "maxWidth": diagramWidth,
                         "maxHeight": diagramHeight,
-                        "containment": "parent"})
+                        "containment": "parent",
+                        "start": startDragOrResize,
+                        "stop": stopDragOrResize})
             .appendTo("#gridcontainer");
         row[y] = {
           slot: null
@@ -142,6 +145,8 @@
 right side in the shelf -->
 
 <div id="gridcontainer"></div>
+
+<div id="shelfcontainer"></div>
 
 </body>
 </html>
