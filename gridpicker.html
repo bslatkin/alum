@@ -258,9 +258,19 @@
         .click(function() {
           if ($(this).hasClass("ui-state-active")) {
             $(this).removeClass("ui-state-active");
-            // TODO: check inputs
-            resetGrid($("#gridwidth").val(),
-                      $("#gridheight").val());
+            if (!($("#gridwidth").val() > 0) ||
+                !($("#gridheight").val() > 0)) {
+              $("<p>Invalid number of columns and rows.</p>").dialog({
+                "draggable": false,
+                "modal": true,
+                "resizable": false,
+                "title": "Error"
+              });
+            } else {
+              resetGrid($("#gridwidth").val(),
+                        $("#gridheight").val());
+            }
+            return false;
           }
         })
         .appendTo("#shelfcontainer");
