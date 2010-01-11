@@ -27,7 +27,27 @@
 }
 
 #shelfcontainer {
-  
+  padding-top: 280px;
+  font: -webkit-small-control;
+}
+
+#newbutton {
+  padding: 20px;
+  margin-right: 1.5em;
+}
+
+#gridwidth {
+  width: 2.5em;
+  margin-right: 1.5em;
+}
+
+#gridheight {
+  width: 2.5em;
+}
+
+#setgridbutton {
+  padding: 7px;
+  margin-left: 1.5em;
 }
 
 </style>
@@ -133,12 +153,12 @@
                              "height": diagramHeight,
                              "position": "absolute"});
 
+    // Create a grid of draggables.
     for (var x = 0; x < numColumns; ++x) {
       var row = []
       gridColumns[x] = row;
       for (var y = 0; y < numRows; ++y) {
-        // Create a grid of draggables.
-        var slot = $("<div style=>" + x + ", " + y + "</div>");
+        var slot = $("<div>" + x + ", " + y + "</div>");
         slot.addClass("slot")
             .addClass("slot-static")
             .data("overlap", [{"x": x, "y": y}])
@@ -164,21 +184,67 @@
         row[y] = slot;
       }
     }
+
+    // Create a new window button.
+    $("<button id='newbutton' type='submit'>New Window</button>")
+        .addClass("ui-state-default")
+        .addClass("ui-corner-all")
+        .addClass("ui-priority-primary")
+        .hover(function() {
+          $(this).addClass("ui-state-hover");
+        }, function() {
+          $(this).removeClass("ui-state-active")
+                 .removeClass("ui-state-hover");
+        })
+        .mousedown(function() {
+          $(this).addClass("ui-state-active");
+        })
+        .click(function() {
+          if ($(this).hasClass("ui-state-active")) {
+            $(this).removeClass("ui-state-active");
+            // Create a new window in the first open slot.
+            // TODO
+          }
+        })
+        .prependTo("#shelfcontainer");
+
+    // Add Grid setting button.
+    $("<button id='setgridbutton' type='submit'>Set Grid</button>")
+        .addClass("ui-state-default")
+        .addClass("ui-corner-all")
+        .addClass("ui-priority-primary")
+        .hover(function() {
+          $(this).addClass("ui-state-hover");
+        }, function() {
+          $(this).removeClass("ui-state-active")
+                 .removeClass("ui-state-hover");
+        })
+        .mousedown(function() {
+          $(this).addClass("ui-state-active");
+        })
+        .click(function() {
+          if ($(this).hasClass("ui-state-active")) {
+            $(this).removeClass("ui-state-active");
+            // Update the grid
+            // TODO
+          }
+        })
+        .appendTo("#shelfcontainer");
   });
 </script>
 
 </head>
 <body>
 
-<!-- containing div that's got the screen resolution scaled to the grid size -->
 <!-- list on the right to select the different numbers -->
 <!-- dialog to change the numbers of each with a button -->
-<!-- if you drag an element overlapping others, the others will go off to the
-right side in the shelf -->
 
 <div id="gridcontainer"></div>
 
-<div id="shelfcontainer"></div>
+<div id="shelfcontainer">
+  Width <input id="gridwidth" type="text" />
+  Height <input id="gridheight" type="text" />
+</div>
 
 </body>
 </html>
