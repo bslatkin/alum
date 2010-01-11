@@ -151,43 +151,66 @@
     ui.helper.data("overlap", gridSlots);
   }
 
-  $(document).ready(function() {
+  function createSlot(x, y) {
+    var slot = $("<div>" + x + ", " + y + "</div>");
+    slot.addClass("slot")
+        .addClass("slot-static")
+        .addClass("ui-state-default")
+        .data("overlap", [{"x": x, "y": y}])
+        .css({"width": (gridWidth-2) + "px",
+              "height": (gridHeight-2) + "px",
+              "left": gridPixelsX(x),
+              "top": gridPixelsY(y),
+              "position": "absolute"})
+        .draggable({"grid": [gridWidth, gridHeight],
+                    "containment": "parent",
+                    "zIndex": 0,
+                    "start": startDragOrResize,
+                    "stop": stopDragOrResize})
+        .resizable({"grid": [gridWidth, gridHeight],
+                    "minWidth": gridWidth,
+                    "minHeight": gridHeight,
+                    "maxWidth": diagramWidth,
+                    "maxHeight": diagramHeight,
+                    "containment": "parent",
+                    "start": startDragOrResize,
+                    "stop": stopDragOrResize})
+        .appendTo("#gridcontainer");
+    return slot;
+  }
+
+  function resetGrid(columns, rows) {
+    numRows = rows;
+    numColumns = columns;
+    gridColumns = [];
+    gridWidth = Math.floor(diagramWidth / numColumns);
+    gridHeight = Math.floor(diagramHeight / numRows);
+    // Readjust total layout size for weight floating point values.
+    diagramWidth = numColumns * gridWidth;
+    diagramHeight = numRows * gridHeight;
+
+    var children = $("#gridcontainer").children(".slot");
+    for (var i = 0; i < children.length; ++i) {
+      $(children[i]).remove();
+    }
+
     $("#gridcontainer").css({"width": diagramWidth,
                              "height": diagramHeight,
                              "position": "absolute"});
 
-    // Create a grid of draggables.
     for (var x = 0; x < numColumns; ++x) {
       var row = []
       gridColumns[x] = row;
       for (var y = 0; y < numRows; ++y) {
-        var slot = $("<div>" + x + ", " + y + "</div>");
-        slot.addClass("slot")
-            .addClass("slot-static")
-            .addClass("ui-state-default")
-            .data("overlap", [{"x": x, "y": y}])
-            .css({"width": (gridWidth-2) + "px",
-                  "height": (gridHeight-2) + "px",
-                  "left": gridPixelsX(x),
-                  "top": gridPixelsY(y),
-                  "position": "absolute"})
-            .draggable({"grid": [gridWidth, gridHeight],
-                        "containment": "parent",
-                        "zIndex": 0,
-                        "start": startDragOrResize,
-                        "stop": stopDragOrResize})
-            .resizable({"grid": [gridWidth, gridHeight],
-                        "minWidth": gridWidth,
-                        "minHeight": gridHeight,
-                        "maxWidth": diagramWidth,
-                        "maxHeight": diagramHeight,
-                        "containment": "parent",
-                        "start": startDragOrResize,
-                        "stop": stopDragOrResize})
-            .appendTo("#gridcontainer");
+        slot = createSlot(x, y);
         row[y] = slot;
       }
     }
+  }
+
+  $(document).ready(function() {
+    // Create a grid of draggables.
+    resetGrid(numRows, numColumns);
 
     // Create a new window button.
     $("<button id='newbutton' type='submit'>New Window</button>")
@@ -206,8 +229,14 @@
         .click(function() {
           if ($(this).hasClass("ui-state-active")) {
             $(this).removeClass("ui-state-active");
-            // Create a new window in the first open slot.
-            // TODO
+            for (var x = 0; x < numColumns; ++x) {
+              for (var y = 0; y < numRows; ++y) {
+                if (gridColumns[x][y] == null) {
+                  gridColumns[x][y] = createSlot(x, y);
+                  return false;
+                }
+              }
+            }
           }
         })
         .prependTo("#shelfcontainer");
@@ -229,8 +258,9 @@
         .click(function() {
           if ($(this).hasClass("ui-state-active")) {
             $(this).removeClass("ui-state-active");
-            // Update the grid
-            // TODO
+            // TODO: check inputs
+            resetGrid($("#gridwidth").val(),
+                      $("#gridheight").val());
           }
         })
         .appendTo("#shelfcontainer");
@@ -246,8 +276,8 @@
 <div id="gridcontainer"></div>
 
 <div id="shelfcontainer">
-  Width <input id="gridwidth" type="text" />
-  Height <input id="gridheight" type="text" />
+  Columns <input id="gridwidth" type="text" />
+  Rows <input id="gridheight" type="text" />
 </div>
 
 </body>
