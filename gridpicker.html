@@ -5,28 +5,27 @@
 
 .slot {
   cursor: move;
-  border: 1px solid black;
-  padding: 0px;
-  marign: 0px;
+  border: 0;
+  padding: 0;
+  marign: 0;
 }
 
 .slot-static {
-  background-color: #ccc;
   z-index: 1;
 }
 
 .slot-dragging {
-  background-color: #aaa;
   z-index: 10000;
 }
 
 #gridcontainer {
-  margin: 0;
-  padding: 0px;
-  border: 1px solid red;
+  margin: 10px;
+  padding: 0;
+  border: 2px dashed #aaa;
 }
 
 #shelfcontainer {
+  margin: 10px;
   padding-top: 280px;
   font: -webkit-small-control;
 }
@@ -101,11 +100,15 @@
 
   ///// Event handling
   function startDragOrResize(event, ui) {
-    ui.helper.addClass("slot-dragging").removeClass("slot-static");
+    ui.helper.addClass("slot-dragging")
+        .addClass("ui-state-active")
+        .removeClass("slot-static");
   }
   function stopDragOrResize(event, ui) {
     var position = ui.helper.position();
-    ui.helper.addClass("slot-static").removeClass("slot-dragging");
+    ui.helper.addClass("slot-static")
+        .removeClass("slot-dragging")
+        .removeClass("ui-state-active");
     var gridSlots = getGridSlots(
         position.top,
         position.left,
@@ -161,6 +164,7 @@
         var slot = $("<div>" + x + ", " + y + "</div>");
         slot.addClass("slot")
             .addClass("slot-static")
+            .addClass("ui-state-default")
             .data("overlap", [{"x": x, "y": y}])
             .css({"width": (gridWidth-2) + "px",
                   "height": (gridHeight-2) + "px",
