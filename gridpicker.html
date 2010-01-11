@@ -92,19 +92,19 @@
         position.top + ui.helper.innerHeight(),
         position.left + ui.helper.innerWidth());
 
-    // Clear the old positions.
+    // Clear the old positions this item overlapped.
     var oldSlots = ui.helper.data("overlap");
     for (var i = 0; i < oldSlots.length; ++i) {
       var overlap = oldSlots[i];
       gridColumns[overlap.x][overlap.y] = null;
     }
 
-    // Remove/hide overlapped slots and point at the new one.
+    // Remove/hide items in overlapped slots and point at the new one.
     for (var i = 0; i < gridSlots.length; ++i) {
       var newOverlap = gridSlots[i];
       var slot = gridColumns[newOverlap.x][newOverlap.y];
-      // Remove *all* slots this element overlaps.
       if (slot) {
+        // Remove *all* slots this single element overlaps.
         var slotOverlaps = slot.data("overlap");
         for (var j = 0; j < slotOverlaps.length; ++j) {
           var itemOverlap = slotOverlaps[j];
@@ -112,9 +112,10 @@
           if (itemSlot) {
             gridColumns[itemOverlap.x][itemOverlap.y] = null;
             if (j == 0) {
-              // The first item slot through will be animated.
+              // The first item slot removal will be animated.
               slot.hide("puff", {}, 200, function() {
-                slot.remove();
+                $(this).remove();  // Clean up the dom.
+                console.log("Removing: " + $(this).text());
               });
             }
           }
