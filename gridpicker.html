@@ -32,7 +32,7 @@ h1, h3 {
 }
 
 #shelfcontainer {
-  margin: 10px;
+  margin: 1em;
   padding-top: 280px;
   font: -webkit-small-control;
 }
@@ -56,6 +56,11 @@ h1, h3 {
   margin-left: 1.5em;
 }
 
+#about {
+  margin-left: 1em;
+  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+}
+
 </style>
 
 <link type="text/css" href="jquery/css/smoothness/jquery-ui-1.7.2.custom.css" rel="stylesheet" />	
@@ -63,6 +68,8 @@ h1, h3 {
 <script type="text/javascript" src="jquery/js/jquery-ui-1.7.2.custom.min.js"></script>
 
 <script type="text/javascript">
+
+  // BEGIN TODO: Move all these to config parameters.
   // inputs
   var diagramWidth = 500;
   var diagramHeight = 250;
@@ -75,6 +82,7 @@ h1, h3 {
   diagramHeight = numRows * gridHeight;
   var gridColumns = [];
   var activeSlots = numRows * numColumns;
+  // END TODO
 
   // Convert grid slot to pixel location.
   function gridPixelsX(x) {
@@ -140,6 +148,7 @@ h1, h3 {
     // Readjust total layout size for weight floating point values.
     diagramWidth = numColumns * gridWidth;
     diagramHeight = numRows * gridHeight;
+    activeSlots = numRows * numColumns;
 
     var children = $("#gridcontainer").children(".slot");
     for (var i = 0; i < children.length; ++i) {
@@ -234,7 +243,7 @@ h1, h3 {
 
     // Save the new locations to clear it the next time the object is changed.
     ui.helper.data("overlap", gridSlots);
-    renumberSlots(activeSlots);
+    setTimeout("renumberSlots(activeSlots);", 2000);
   }
 
   $(document).ready(function() {
@@ -318,6 +327,11 @@ h1, h3 {
 <div id="shelfcontainer">
   Columns <input id="gridwidth" type="text" value="4" />
   Rows <input id="gridheight" type="text" value="3" />
+</div>
+
+<h3>About</h3>
+<div id="about">
+  <p>This is some text</p>
 </div>
 
 </body>
