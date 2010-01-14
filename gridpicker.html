@@ -99,12 +99,9 @@ h1, h3 {
     var nextNumber = allSlots.length;
     for (var i = allSlots.length-1; i >= 0; --i) {
       var number = parseInt($(allSlots[i]).text());
-      if (number == nextNumber) {
-        // Current slot number is less than the next one to assign, which
-        // means the hole has been filled already.
-        return;
+      if (number != nextNumber) {
+        $($(allSlots[i]).children(".slotvalue")[0]).text(nextNumber);
       }
-      $($(allSlots[i]).children(".slotvalue")[0]).text(nextNumber);
       nextNumber--;
     }
   }
@@ -123,7 +120,7 @@ h1, h3 {
 
     // The NxM grid
     this.gridColumns = [];
-    this.activeSlots = 0;
+    this.activeSlots = this.numRows * this.numColumns;
   }
 
   Grid.prototype.gridPixelsX = function(x) {
@@ -300,7 +297,7 @@ h1, h3 {
             for (var x = 0; x < GRID.numColumns; ++x) {
               for (var y = 0; y < GRID.numRows; ++y) {
                 if (GRID.gridColumns[x][y] == null) {
-                  GRID.gridColumns[x][y] = GRID.createSlot(x, y, GRID.activeSlots++);
+                  GRID.gridColumns[x][y] = GRID.createSlot(x, y, ++GRID.activeSlots);
                   return false;
                 }
               }
