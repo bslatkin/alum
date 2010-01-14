@@ -69,114 +69,34 @@ h1, h3 {
 
 <script type="text/javascript">
 
-  // BEGIN TODO: Move all these to config parameters.
-  // inputs
-  var diagramWidth = 500;
-  var diagramHeight = 250;
-  var numColumns = 4;
-  var numRows = 3;
-  var gridWidth = Math.floor(diagramWidth / numColumns);
-  var gridHeight = Math.floor(diagramHeight / numRows);
-  // Readjust total layout size for weight floating point values.
-  diagramWidth = numColumns * gridWidth;
-  diagramHeight = numRows * gridHeight;
-  var gridColumns = [];
-  var activeSlots = numRows * numColumns;
-  // END TODO
+  ////// Stateless functions.
 
-  // Convert grid slot to pixel location.
-  function gridPixelsX(x) {
-    return (gridWidth) * x;
-  }
-  function gridPixelsY(y) {
-    return (gridHeight) * y;
-  }
-
-  // Convert pixel location to grid slots. Returns [{x: N, y: M}, ...]
-  function getGridSlots(top, left, bottom, right) {
-    var foundSlots = [];
-    for (var x = 0; x < numColumns; ++x) {
-      for (var y = 0; y < numRows; ++y) {
-        var pixelX = gridPixelsX(x);
-        var pixelY = gridPixelsY(y);
-        if (bottom >= pixelY &&
-            top <= pixelY &&
-            right >= pixelX &&
-            left <= pixelX) {
-          foundSlots.push({"x": x, "y": y});
+  // Returns slots from the given NxM grid array that are not null,
+  // and removes duplicate slots.
+  function getActiveSlots(columns) {
+    var result = [];
+    for (var x = 0; x < columns.length; ++x) {
+      for (var y = 0; y < columns[x].length; ++y) {
+        var slot = columns[x][y];
+        if (slot != null) {
+          if (result.indexOf(slot) == -1) {
+            result.push(slot);
+          }
         }
       }
     }
-    return foundSlots;
+    return result;
   }
 
-  function createSlot(x, y, number) {
-    var slot = $("<div><span class='slotvalue'>" + number + "</span></div>");
-    slot.addClass("slot")
-        .addClass("slot-static")
-        .addClass("ui-state-default")
-        .data("overlap", [{"x": x, "y": y}])
-        .css({"width": (gridWidth-2) + "px",
-              "height": (gridHeight-2) + "px",
-              "left": gridPixelsX(x),
-              "top": gridPixelsY(y),
-              "position": "absolute",
-              "line-height": (gridHeight-2) + "px"})
-        .draggable({"grid": [gridWidth, gridHeight],
-                    "containment": "parent",
-                    "zIndex": 0,
-                    "start": startDragOrResize,
-                    "stop": stopDragOrResize})
-        .resizable({"grid": [gridWidth, gridHeight],
-                    "minWidth": gridWidth,
-                    "minHeight": gridHeight,
-                    "maxWidth": diagramWidth,
-                    "maxHeight": diagramHeight,
-                    "containment": "parent",
-                    "start": startDragOrResize,
-                    "stop": stopDragOrResize})
-        .appendTo("#gridcontainer");
-    return slot;
-  }
-
-  function resetGrid(columns, rows) {
-    numRows = rows;
-    numColumns = columns;
-    gridColumns = [];
-    gridWidth = Math.floor(diagramWidth / numColumns);
-    gridHeight = Math.floor(diagramHeight / numRows);
-    // Readjust total layout size for weight floating point values.
-    diagramWidth = numColumns * gridWidth;
-    diagramHeight = numRows * gridHeight;
-    activeSlots = numRows * numColumns;
-
-    var children = $("#gridcontainer").children(".slot");
-    for (var i = 0; i < children.length; ++i) {
-      $(children[i]).remove();
-    }
-
-    $("#gridcontainer").css({"width": diagramWidth,
-                             "height": diagramHeight,
-                             "position": "absolute"});
-
-    for (var x = 0; x < numColumns; ++x) {
-      var row = []
-      gridColumns[x] = row;
-      for (var y = 0; y < numRows; ++y) {
-        var slotNumber = x + (numColumns * y) + 1;
-        slot = createSlot(x, y, "" + slotNumber);
-        row[y] = slot;
-      }
-    }
-  }
-
-  function renumberSlots(allSlots, count) {
+  // Takes a list of unique slots that should be active and renumbers them
+  // in the DOM, bumping higher numbers down towards '1'.
+  function renumberSlots(allSlots) {
     function sortSlots(a, b) {
       return parseInt($(a).text()) - parseInt($(b).text());
     }
     allSlots.sort(sortSlots);
 
-    var nextNumber = count;
+    var nextNumber = allSlots.length;
     for (var i = allSlots.length-1; i >= 0; --i) {
       var number = parseInt($(allSlots[i]).text());
       if (number == nextNumber) {
@@ -189,18 +109,123 @@ h1, h3 {
     }
   }
 
-  ///// Event handling
+  ////// Classes
+
+  function Grid(columns, rows) {
+    this.numColumns = columns;
+    this.numRows = rows;
+    this.diagramWidth = 500;
+    this.diagramHeight = 250;
+    this.slotWidth = Math.floor(this.diagramWidth / this.numColumns);
+    this.slotHeight = Math.floor(this.diagramHeight / this.numRows);
+    this.diagramWidth = this.numColumns * this.slotWidth;
+    this.diagramHeight = this.numRows * this.slotHeight;
+
+    // The NxM grid
+    this.gridColumns = [];
+    this.activeSlots = 0;
+  }
+
+  Grid.prototype.gridPixelsX = function(x) {
+    return this.slotWidth * x;
+  }
+
+  Grid.prototype.gridPixelsY = function(y) {
+    return this.slotHeight * y;
+  }
+
+  Grid.prototype.createSlot = function(x, y, number) {
+    var slot = $("<div><span class='slotvalue'>" + number + "</span></div>");
+    slot.addClass("slot")
+        .addClass("slot-static")
+        .addClass("ui-state-default")
+        .data("overlap", [{"x": x, "y": y}])
+        .css({"width": (this.slotWidth-2) + "px",
+              "height": (this.Height-2) + "px",
+              "left": this.gridPixelsX(x),
+              "top": this.gridPixelsY(y),
+              "position": "absolute",
+              "line-height": (this.slotHeight-2) + "px"})
+        .draggable({"grid": [this.slotWidth, this.slotHeight],
+                    "containment": "parent",
+                    "zIndex": 0,
+                    "start": startDragOrResize,
+                    "stop": stopDragOrResize})
+        .resizable({"grid": [this.slotWidth, this.slotHeight],
+                    "minWidth": this.slotWidth,
+                    "minHeight": this.slotHeight,
+                    "maxWidth": this.diagramWidth,
+                    "maxHeight": this.diagramHeight,
+                    "containment": "parent",
+                    "start": startDragOrResize,
+                    "stop": stopDragOrResize})
+        .appendTo("#gridcontainer");
+    return slot;
+  }
+
+  // Convert pixel location to grid slots. Returns [{x: N, y: M}, ...]
+  Grid.prototype.getGridSlots = function(top, left, bottom, right) {
+    var foundSlots = [];
+    for (var x = 0; x < this.numColumns; ++x) {
+      for (var y = 0; y < this.numRows; ++y) {
+        var pixelX = this.gridPixelsX(x);
+        var pixelY = this.gridPixelsY(y);
+        if (bottom >= pixelY &&
+            top <= pixelY &&
+            right >= pixelX &&
+            left <= pixelX) {
+          foundSlots.push({"x": x, "y": y});
+        }
+      }
+    }
+    return foundSlots;
+  }
+
+  // Removes the old grid from the DOM and recreates a new grid with the
+  // given parameters, returning it.
+  function resetGrid(columns, rows) {
+    var grid = new Grid(columns, rows);
+    var children = $("#gridcontainer").children(".slot");
+    for (var i = 0; i < children.length; ++i) {
+      $(children[i]).remove();
+    }
+
+    $("#gridcontainer").css({"width": grid.diagramWidth,
+                             "height": grid.diagramHeight,
+                             "position": "absolute"});
+
+    for (var x = 0; x < grid.numColumns; ++x) {
+      var row = []
+      grid.gridColumns[x] = row;
+      for (var y = 0; y < grid.numRows; ++y) {
+        var slotNumber = x + (grid.numColumns * y) + 1;
+        slot = grid.createSlot(x, y, "" + slotNumber);
+        row[y] = slot;
+      }
+    }
+
+    return grid;
+  }
+
+  ////// Global data.
+  
+  var GRID = null;
+
+
+  ////// Event handling.
+  
   function startDragOrResize(event, ui) {
     ui.helper.addClass("slot-dragging")
         .addClass("ui-state-active")
         .removeClass("slot-static");
   }
+
   function stopDragOrResize(event, ui) {
     var position = ui.helper.position();
     ui.helper.addClass("slot-static")
         .removeClass("slot-dragging")
         .removeClass("ui-state-active");
-    var gridSlots = getGridSlots(
+    var gridSlots = GRID.getGridSlots(
         position.top,
         position.left,
         position.top + ui.helper.innerHeight(),
@@ -210,46 +235,36 @@ h1, h3 {
     var oldSlots = ui.helper.data("overlap");
     for (var i = 0; i < oldSlots.length; ++i) {
       var overlap = oldSlots[i];
-      gridColumns[overlap.x][overlap.y] = null;
+      GRID.gridColumns[overlap.x][overlap.y] = null;
     }
 
     // Remove/hide items in overlapped slots and point at the new one.
     var removedSlots = [];
     for (var i = 0; i < gridSlots.length; ++i) {
       var newOverlap = gridSlots[i];
-      var slot = gridColumns[newOverlap.x][newOverlap.y];
+      var slot = GRID.gridColumns[newOverlap.x][newOverlap.y];
       if (slot) {
         // Remove *all* slots this single element overlaps.
         var slotOverlaps = slot.data("overlap");
         for (var j = 0; j < slotOverlaps.length; ++j) {
           var itemOverlap = slotOverlaps[j];
-          var itemSlot = gridColumns[itemOverlap.x][itemOverlap.y];
+          var itemSlot = GRID.gridColumns[itemOverlap.x][itemOverlap.y];
           if (itemSlot) {
-            gridColumns[itemOverlap.x][itemOverlap.y] = null;
+            GRID.gridColumns[itemOverlap.x][itemOverlap.y] = null;
             if (j == 0) {
               removedSlots.push(slot);
-              activeSlots--;
+              GRID.activeSlots--;
             }
           }
         }
       }
-      gridColumns[newOverlap.x][newOverlap.y] = ui.helper;
+      GRID.gridColumns[newOverlap.x][newOverlap.y] = ui.helper;
     }
     // Save the new locations to clear it the next time the object is changed.
     ui.helper.data("overlap", gridSlots);
 
-    var remainingSlots = [];
-    for (var x = 0; x < numColumns; ++x) {
-      for (var y = 0; y < numRows; ++y) {
-        var slot = gridColumns[x][y];
-        if (slot != null) {
-          remainingSlots.push(slot);
-        }
-      }
-    }
-    renumberSlots(remainingSlots, activeSlots);
-
-    // Finally, animate all the removals.
+    // Finally, renumber all slots and animate all the removals.
+    renumberSlots(getActiveSlots(GRID.gridColumns), GRID.activeSlots);
     for (var i = 0; i < removedSlots.length; ++i) {
       removedSlots[i].hide("puff", {}, 200, function() {
         $(this).remove();  // Clean up the dom.
@@ -257,10 +272,13 @@ h1, h3 {
     }
   }
 
+
+  ////// Initialization.
+
   $(document).ready(function() {
     // TODO: Save and restore preference with local storage API!
     // Create a grid of draggables.
-    resetGrid(numRows, numColumns);
+    GRID = resetGrid(4, 3);
 
     // Create a new window button.
     $("<button id='newbutton' type='submit'>Add Window</button>")
@@ -276,13 +294,13 @@ h1, h3 {
         .mousedown(function() {
           $(this).addClass("ui-state-active");
         })
-        .click(function() {
+        .click(function() {  // TODO: Move this handler into the class.
           if ($(this).hasClass("ui-state-active")) {
             $(this).removeClass("ui-state-active");
-            for (var x = 0; x < numColumns; ++x) {
-              for (var y = 0; y < numRows; ++y) {
-                if (gridColumns[x][y] == null) {
-                  gridColumns[x][y] = createSlot(x, y, activeSlots++);
+            for (var x = 0; x < GRID.numColumns; ++x) {
+              for (var y = 0; y < GRID.numRows; ++y) {
+                if (GRID.gridColumns[x][y] == null) {
+                  GRID.gridColumns[x][y] = GRID.createSlot(x, y, GRID.activeSlots++);
                   return false;
                 }
               }
@@ -305,7 +323,7 @@ h1, h3 {
         .mousedown(function() {
           $(this).addClass("ui-state-active");
         })
-        .click(function() {
+        .click(function() {  // Move this handler into the class.
           if ($(this).hasClass("ui-state-active")) {
             $(this).removeClass("ui-state-active");
             if (!($("#gridwidth").val() > 0) ||
