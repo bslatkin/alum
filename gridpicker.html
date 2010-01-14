@@ -163,14 +163,14 @@ h1, h3 {
       var row = []
       gridColumns[x] = row;
       for (var y = 0; y < numRows; ++y) {
-        slot = createSlot(x, y, "" + (1 + x + (numRows-1)*y));
+        var slotNumber = x + (numColumns * y) + 1;
+        slot = createSlot(x, y, "" + slotNumber);
         row[y] = slot;
       }
     }
   }
 
-  function renumberSlots(count) {
-    var allSlots = $(".slotvalue");
+  function renumberSlots(allSlots, count) {
     function sortSlots(a, b) {
       return parseInt($(a).text()) - parseInt($(b).text());
     }
@@ -184,10 +184,7 @@ h1, h3 {
         // means the hole has been filled already.
         return;
       }
-      $(allSlots[i])
-          .css({"display": "none"})
-          .text(nextNumber)
-          .css({"display": "block"});
+      $($(allSlots[i]).children(".slotvalue")[0]).text(nextNumber);
       nextNumber--;
     }
   }
@@ -217,6 +214,7 @@ h1, h3 {
     }
 
     // Remove/hide items in overlapped slots and point at the new one.
+    var removedSlots = [];
     for (var i = 0; i < gridSlots.length; ++i) {
       var newOverlap = gridSlots[i];
       var slot = gridColumns[newOverlap.x][newOverlap.y];
@@ -229,21 +227,34 @@ h1, h3 {
           if (itemSlot) {
             gridColumns[itemOverlap.x][itemOverlap.y] = null;
             if (j == 0) {
-              // The first item slot removal will be animated.
-              slot.hide("puff", {}, 200, function() {
-                activeSlots--;
-                $(this).remove();  // Clean up the dom.
-              });
+              removedSlots.push(slot);
+              activeSlots--;
             }
           }
         }
       }
       gridColumns[newOverlap.x][newOverlap.y] = ui.helper;
     }
-
     // Save the new locations to clear it the next time the object is changed.
     ui.helper.data("overlap", gridSlots);
-    setTimeout("renumberSlots(activeSlots);", 2000);
+
+    var remainingSlots = [];
+    for (var x = 0; x < numColumns; ++x) {
+      for (var y = 0; y < numRows; ++y) {
+        var slot = gridColumns[x][y];
+        if (slot != null) {
+          remainingSlots.push(slot);
+        }
+      }
+    }
+    renumberSlots(remainingSlots, activeSlots);
+
+    // Finally, animate all the removals.
+    for (var i = 0; i < removedSlots.length; ++i) {
+      removedSlots[i].hide("puff", {}, 200, function() {
+        $(this).remove();  // Clean up the dom.
+      });
+    }
   }
 
   $(document).ready(function() {
