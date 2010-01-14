@@ -108,7 +108,7 @@ h1, h3 {
 
   ////// Classes
 
-  function Grid(columns, rows) {
+  function Grid(columns, rows, gridColumns) {
     this.numColumns = columns;
     this.numRows = rows;
     this.diagramWidth = 500;
@@ -119,7 +119,11 @@ h1, h3 {
     this.diagramHeight = this.numRows * this.slotHeight;
 
     // The NxM grid
-    this.gridColumns = [];
+    if (gridColumns == null)
+      this.gridColumns = [];
+    } else {
+      this.gridColumns = gridColumns;
+    }
     this.activeSlots = this.numRows * this.numColumns;
   }
 
@@ -273,9 +277,12 @@ h1, h3 {
   ////// Initialization.
 
   $(document).ready(function() {
-    // TODO: Save and restore preference with local storage API!
-    // Create a grid of draggables.
-    GRID = resetGrid(4, 3);
+    var columns = localStorage.getItem('grid-columns');
+    if (columns == null) columns = 4;
+    var rows = localStorage.getItem('grid-rows');
+    if (rows == null) rows = 3;
+
+    GRID = resetGrid(columns, rows, localStorage.getItem('grid-arrays'));
 
     // Create a new window button.
     $("<button id='newbutton' type='submit'>Add Window</button>")
