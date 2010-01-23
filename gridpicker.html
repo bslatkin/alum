@@ -108,7 +108,12 @@ h1, h3 {
 
   ////// Classes
 
-  function Grid(columns, rows, container) {
+  // 'container' is a CSS selector of the DOM element to put the grid in.
+  // 'savedSlots' is a list of [{x: column, y: row,
+  // width: columns, height: rows}, ...] objects, in the order of their slot
+  // numbers, where saved slot locations are; if null then there are no saved
+  // slot locations and the grid should be recreated.
+  function Grid(columns, rows, container, savedSlots) {
     this.numColumns = columns;
     this.numRows = rows;
     this.diagramWidth = 500;
@@ -118,11 +123,16 @@ h1, h3 {
     this.diagramWidth = this.numColumns * this.slotWidth;
     this.diagramHeight = this.numRows * this.slotHeight;
 
-    // The NxM grid
+    // The NxM grid starts off as all nulls.
     this.gridColumns = [];
+    for (var x = 0; x < this.numColumns; ++x) {
+      var row = []
+      this.gridColumns[x] = row;
+      for (var y = 0; y < this.numRows; ++y) {
+        row[y] = null;
+      }
+    }
     this.activeSlots = this.numRows * this.numColumns;
-
-    // TODO: Restore from stored config here.
 
     // Remove all old grid elements.
     var children = $(container).children(".slot");
@@ -134,14 +144,22 @@ h1, h3 {
                       "height": this.diagramHeight,
                       "position": "absolute"});
 
-    // Re-fill the grid.
-    for (var x = 0; x < this.numColumns; ++x) {
-      var row = []
-      this.gridColumns[x] = row;
-      for (var y = 0; y < this.numRows; ++y) {
-        var slotNumber = x + (this.numColumns * y) + 1;
-        slot = this.createSlot(x, y, "" + slotNumber);
-        row[y] = slot;
+    if (savedSlots != null) {
+      for (var i = 0; i < savedSlots.length; ++i) {
+        var current = savedSlots[i];
+        var slot = this.createSlot(current.x, current.y, "" + (i + 1),
+                                   current.width, current.height);
+        // TODO set the overlaps data properly!
+        this.gridColumns[current.x][current.y] = slot;
+      }
+    } else {
+      // Re-fill the grid.
+      for (var x = 0; x < this.numColumns; ++x) {
+        for (var y = 0; y < this.numRows; ++y) {
+          var slotNumber = x + (this.numColumns * y) + 1;
+          slot = this.createSlot(x, y, "" + slotNumber);
+          this.gridColumns[x][y] = slot;
+        }
       }
     }
   }
@@ -154,14 +172,17 @@ h1, h3 {
     return this.slotHeight * y;
   }
 
-  Grid.prototype.createSlot = function(x, y, number) {
+  // 'rows' and 'columns' optional, default to 1.
+  Grid.prototype.createSlot = function(x, y, number, rows, columns) {
+    if (rows == null) rows = 1;
+    if (columns == null) columns = 1;
     var slot = $("<div><span class='slotvalue'>" + number + "</span></div>");
     slot.addClass("slot")
         .addClass("slot-static")
         .addClass("ui-state-default")
         .data("overlap", [{"x": x, "y": y}])
-        .css({"width": (this.slotWidth-2) + "px",
-              "height": (this.Height-2) + "px",
+        .css({"width": ((this.slotWidth * rows) - 2) + "px",
+              "height": ((this.slotHeight * columns) - 2) + "px",
               "left": this.gridPixelsX(x),
               "top": this.gridPixelsY(y),
               "position": "absolute",
@@ -304,7 +325,13 @@ h1, h3 {
   ////// Initialization.
 
   $(document).ready(function() {
-    GRID = new Grid(4, 3, "#gridcontainer");
+    //GRID = new Grid(4, 3, "#gridcontainer");
+
+    GRID = new Grid(4, 3, "#gridcontainer",
+      [{x: 1, y: 1, width: 2, height: 2},
+       {x: 0, y: 0, width: 1, height: 1},
+       {x: 1, y: 0, width: 3, height: 1},
+       {x: 3, y: 1, width: 1, height: 2}])
 
     // New window button.
     $("<button id='newbutton' type='submit'>Add Window</button>")
