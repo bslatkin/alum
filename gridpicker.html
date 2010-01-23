@@ -234,6 +234,27 @@ h1, h3 {
     return foundSlots;
   }
 
+  // Dumps slots into saveable format for passing into the Grid constructor.
+  Grid.prototype.dumpSlots = function() {
+    // TODO: Push sorting into getActiveSlots function.
+    var active = getActiveSlots(GRID.gridColumns);
+    function sortSlots(a, b) {
+      return parseInt($(a).text()) - parseInt($(b).text());
+    }
+    active.sort(sortSlots);
+
+    var config = [];
+    for (var i = 0; i < active.length; ++i) {
+      var current = active[i];
+      config.push({
+          x: current.position().left / this.slotWidth,
+          y: current.position().top / this.slotHeight,
+          width: (current.innerWidth() + 2) / this.slotWidth,
+          height: (current.innerHeight() + 2) / this.slotHeight,
+      });
+    }
+  }
+
   ////// Global data.
 
   var GRID = null;
@@ -343,6 +364,8 @@ h1, h3 {
        {x: 0, y: 0, width: 1, height: 1},
        {x: 1, y: 0, width: 3, height: 1},
        {x: 3, y: 1, width: 1, height: 2}])
+
+    GRID.dumpSlots();
 
     // New window button.
     $("<button id='newbutton' type='submit'>Add Window</button>")
