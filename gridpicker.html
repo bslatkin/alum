@@ -108,7 +108,7 @@ h1, h3 {
 
   ////// Classes
 
-  function Grid(columns, rows, gridColumns) {
+  function Grid(columns, rows, container) {
     this.numColumns = columns;
     this.numRows = rows;
     this.diagramWidth = 500;
@@ -119,12 +119,31 @@ h1, h3 {
     this.diagramHeight = this.numRows * this.slotHeight;
 
     // The NxM grid
-    if (gridColumns == null)
-      this.gridColumns = [];
-    } else {
-      this.gridColumns = gridColumns;
-    }
+    this.gridColumns = [];
     this.activeSlots = this.numRows * this.numColumns;
+
+    // TODO: Restore from stored config here.
+
+    // Remove all old grid elements.
+    var children = $(container).children(".slot");
+    for (var i = 0; i < children.length; ++i) {
+      $(children[i]).remove();
+    }
+
+    $(container).css({"width": this.diagramWidth,
+                      "height": this.diagramHeight,
+                      "position": "absolute"});
+
+    // Re-fill the grid.
+    for (var x = 0; x < this.numColumns; ++x) {
+      var row = []
+      this.gridColumns[x] = row;
+      for (var y = 0; y < this.numRows; ++y) {
+        var slotNumber = x + (this.numColumns * y) + 1;
+        slot = this.createSlot(x, y, "" + slotNumber);
+        row[y] = slot;
+      }
+    }
   }
 
   Grid.prototype.gridPixelsX = function(x) {
@@ -164,8 +183,9 @@ h1, h3 {
     return slot;
   }
 
-  // Convert pixel location to grid slots. Returns [{x: N, y: M}, ...]
-  Grid.prototype.getGridSlots = function(top, left, bottom, right) {
+  // Convert pixel location to overlapped grid slots.
+  // Returns [{x: N, y: M}, ...]
+  Grid.prototype.getGridSlotsOverlap = function(top, left, bottom, right) {
     var foundSlots = [];
     for (var x = 0; x < this.numColumns; ++x) {
       for (var y = 0; y < this.numRows; ++y) {
@@ -182,34 +202,8 @@ h1, h3 {
     return foundSlots;
   }
 
-  // Removes the old grid from the DOM and recreates a new grid with the
-  // given parameters, returning it.
-  function resetGrid(columns, rows) {
-    var grid = new Grid(columns, rows);
-    var children = $("#gridcontainer").children(".slot");
-    for (var i = 0; i < children.length; ++i) {
-      $(children[i]).remove();
-    }
-
-    $("#gridcontainer").css({"width": grid.diagramWidth,
-                             "height": grid.diagramHeight,
-                             "position": "absolute"});
-
-    for (var x = 0; x < grid.numColumns; ++x) {
-      var row = []
-      grid.gridColumns[x] = row;
-      for (var y = 0; y < grid.numRows; ++y) {
-        var slotNumber = x + (grid.numColumns * y) + 1;
-        slot = grid.createSlot(x, y, "" + slotNumber);
-        row[y] = slot;
-      }
-    }
-
-    return grid;
-  }
-
   ////// Global data.
-  
+
   var GRID = null;
 
 
@@ -226,7 +220,7 @@ h1, h3 {
     ui.helper.addClass("slot-static")
         .removeClass("slot-dragging")
         .removeClass("ui-state-active");
-    var gridSlots = GRID.getGridSlots(
+    var gridSlots = GRID.getGridSlotsOverlap(
         position.top,
         position.left,
         position.top + ui.helper.innerHeight(),
@@ -273,18 +267,46 @@ h1, h3 {
     }
   }
 
+  function newWindowClick() {
+    if ($(this).hasClass("ui-state-active")) {
+      $(this).removeClass("ui-state-active");
+      for (var x = 0; x < GRID.numColumns; ++x) {
+        for (var y = 0; y < GRID.numRows; ++y) {
+          if (GRID.gridColumns[x][y] == null) {
+            GRID.gridColumns[x][y] = GRID.createSlot(x, y, ++GRID.activeSlots);
+            return false;
+          }
+        }
+      }
+    }
+  }
+
+  function resetGridClick() {
+    if ($(this).hasClass("ui-state-active")) {
+      $(this).removeClass("ui-state-active");
+      if (!($("#gridwidth").val() > 0) ||
+          !($("#gridheight").val() > 0)) {
+        $("<p>Invalid number of columns and rows.</p>").dialog({
+          "draggable": false,
+          "modal": true,
+          "resizable": false,
+          "title": "Error"
+        });
+      } else {
+        GRID = new Grid($("#gridwidth").val(),
+                        $("#gridheight").val(),
+                        "#gridcontainer");
+      }
+      return false;
+    }
+  }
 
   ////// Initialization.
 
   $(document).ready(function() {
-    var columns = localStorage.getItem('grid-columns');
-    if (columns == null) columns = 4;
-    var rows = localStorage.getItem('grid-rows');
-    if (rows == null) rows = 3;
+    GRID = new Grid(4, 3, "#gridcontainer");
 
-    GRID = resetGrid(columns, rows, localStorage.getItem('grid-arrays'));
-
-    // Create a new window button.
+    // New window button.
     $("<button id='newbutton' type='submit'>Add Window</button>")
         .addClass("ui-state-default")
         .addClass("ui-corner-all")
@@ -298,22 +320,10 @@ h1, h3 {
         .mousedown(function() {
           $(this).addClass("ui-state-active");
         })
-        .click(function() {  // TODO: Move this handler into the class.
-          if ($(this).hasClass("ui-state-active")) {
-            $(this).removeClass("ui-state-active");
-            for (var x = 0; x < GRID.numColumns; ++x) {
-              for (var y = 0; y < GRID.numRows; ++y) {
-                if (GRID.gridColumns[x][y] == null) {
-                  GRID.gridColumns[x][y] = GRID.createSlot(x, y, ++GRID.activeSlots);
-                  return false;
-                }
-              }
-            }
-          }
-        })
+        .click(newWindowClick)
         .prependTo("#shelfcontainer");
 
-    // Add Grid setting button.
+    // Grid reset button.
     $("<button id='setgridbutton' type='submit'>Reset Grid</button>")
         .addClass("ui-state-default")
         .addClass("ui-corner-all")
@@ -327,24 +337,7 @@ h1, h3 {
         .mousedown(function() {
           $(this).addClass("ui-state-active");
         })
-        .click(function() {  // Move this handler into the class.
-          if ($(this).hasClass("ui-state-active")) {
-            $(this).removeClass("ui-state-active");
-            if (!($("#gridwidth").val() > 0) ||
-                !($("#gridheight").val() > 0)) {
-              $("<p>Invalid number of columns and rows.</p>").dialog({
-                "draggable": false,
-                "modal": true,
-                "resizable": false,
-                "title": "Error"
-              });
-            } else {
-              resetGrid($("#gridwidth").val(),
-                        $("#gridheight").val());
-            }
-            return false;
-          }
-        })
+        .click(resetGridClick)
         .appendTo("#shelfcontainer");
   });
 </script>
