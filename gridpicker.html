@@ -149,8 +149,11 @@ h1, h3 {
         var current = savedSlots[i];
         var slot = this.createSlot(current.x, current.y, "" + (i + 1),
                                    current.width, current.height);
-        // TODO set the overlaps data properly!
-        this.gridColumns[current.x][current.y] = slot;
+        // Update all overlapped grid positions to point at this slot.
+        var overlaps = slot.data("overlap");
+        for (var j = 0; j < overlaps.length; ++j) {
+          this.gridColumns[overlaps[j].x][overlaps[j].y] = slot;
+        }
       }
     } else {
       // Re-fill the grid.
@@ -173,16 +176,24 @@ h1, h3 {
   }
 
   // 'rows' and 'columns' optional, default to 1.
-  Grid.prototype.createSlot = function(x, y, number, rows, columns) {
+  Grid.prototype.createSlot = function(x, y, number, columns, rows) {
     if (rows == null) rows = 1;
     if (columns == null) columns = 1;
+
+    var overlaps = [];
+    for (var overlapX = x; overlapX < (x + columns); ++overlapX) {
+      for (var overlapY = y; overlapY < (y + rows); ++overlapY) {
+        overlaps.push({"x": overlapX, "y": overlapY});
+      }
+    }
+
     var slot = $("<div><span class='slotvalue'>" + number + "</span></div>");
     slot.addClass("slot")
         .addClass("slot-static")
         .addClass("ui-state-default")
-        .data("overlap", [{"x": x, "y": y}])
-        .css({"width": ((this.slotWidth * rows) - 2) + "px",
-              "height": ((this.slotHeight * columns) - 2) + "px",
+        .data("overlap", overlaps)
+        .css({"width": ((this.slotWidth * columns) - 2) + "px",
+              "height": ((this.slotHeight * rows) - 2) + "px",
               "left": this.gridPixelsX(x),
               "top": this.gridPixelsY(y),
               "position": "absolute",
