@@ -9,6 +9,7 @@ document.addEventListener("keypress", function(event) {
       metaKey: event.metaKey
     });
   }
+  return false;
 }, false);
 
 // Not used yet because I need window.focus.

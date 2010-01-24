@@ -50,6 +50,11 @@ function handleHotKey(event) {
   if (event.keyIdentifier == 'U+0042' && event.ctrlKey) {
     console.log('hot key!');
     openAllWindows();
+  } else if (event.keyIdentifier == 'U+0044' && event.ctrlKey) {
+    Slot.rotate(true);
+  } else if (event.keyIdentifier == 'U+0044' &&
+             event.ctrlKey && event.shiftKey) {
+    Slot.rotate(false);
   }
 }
 

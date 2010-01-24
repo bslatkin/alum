@@ -83,6 +83,7 @@ Slot.get = function(number) {
 }
 
 Slot.rotate = function(positive) {
+  // TODO: Protect against multiple concurrent rotates!
   var count = Slot.count();
   if (count == 0) {
     return;
