@@ -250,18 +250,38 @@ h1, h3 {
           x: current.position().left / this.slotWidth,
           y: current.position().top / this.slotHeight,
           width: (current.innerWidth() + 2) / this.slotWidth,
-          height: (current.innerHeight() + 2) / this.slotHeight,
+          height: (current.innerHeight() + 2) / this.slotHeight
       });
+      for (var k in config[i]) {
+        console.log(i + ": " + k + "=" + config[i][k]);
+      }
     }
+    return config;
   }
 
   ////// Global data.
 
   var GRID = null;
 
+  function loadState() {
+    // Local config from local storage and restore.
+    var columns = localStorage.getItem("config:columns");
+    var rows = localStorage.getItem("config:rows");
+    var savedSlots = localStorage.getItem("config:savedSlots");
+    if (columns == null || rows == null || savedSlots == null) {
+      return null;
+    }
+    return new Grid(columns, rows, "#gridcontainer", savedSlots)
+  }
+
+  function saveState() {
+    localStorage.setItem("config:columns", GRID.numColumns);
+    localStorage.setItem("config:rows", GRID.numRows);
+    localStorage.setItem("config:savedSlots", GRID.dumpSlots());
+  }
 
   ////// Event handling.
-  
+
   function startDragOrResize(event, ui) {
     ui.helper.addClass("slot-dragging")
         .addClass("ui-state-active")
@@ -311,13 +331,15 @@ h1, h3 {
     // Save the new locations to clear it the next time the object is changed.
     ui.helper.data("overlap", gridSlots);
 
-    // Finally, renumber all slots and animate all the removals.
+    // Renumber all slots and animate all the removals.
     renumberSlots(getActiveSlots(GRID.gridColumns), GRID.activeSlots);
     for (var i = 0; i < removedSlots.length; ++i) {
       removedSlots[i].hide("puff", {}, 200, function() {
         $(this).remove();  // Clean up the dom.
       });
     }
+
+    saveState();
   }
 
   function newWindowClick() {
@@ -357,15 +379,10 @@ h1, h3 {
   ////// Initialization.
 
   $(document).ready(function() {
-    //GRID = new Grid(4, 3, "#gridcontainer");
-
-    GRID = new Grid(4, 3, "#gridcontainer",
-      [{x: 1, y: 1, width: 2, height: 2},
-       {x: 0, y: 0, width: 1, height: 1},
-       {x: 1, y: 0, width: 3, height: 1},
-       {x: 3, y: 1, width: 1, height: 2}])
-
-    GRID.dumpSlots();
+    GRID = loadState();
+    if (GRID == null) {
+      GRID = new Grid(4, 3, "#gridcontainer");
+    }
 
     // New window button.
     $("<button id='newbutton' type='submit'>Add Window</button>")
