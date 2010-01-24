@@ -28,6 +28,12 @@ function openAllWindows(event) {
   var columnWidth = (1.0 * width) / columns;
   var rowHeight = (1.0 * height) / rows;
 
+  function closure(i) {
+    return function(window) {
+      Slot.set(new Slot(i, window.id));
+    }
+  }
+
   for (var i = 0; i < savedSlots.length; ++i) {
     var slot = savedSlots[i];
     chrome.windows.create({
@@ -35,9 +41,7 @@ function openAllWindows(event) {
       top: Math.floor(slot.y * rowHeight),
       width: Math.floor(slot.width * columnWidth),
       height: Math.floor(slot.height * rowHeight)
-    }, function(window) {
-      Slot.set(new Slot(i+1, window.id));
-    });
+    }, closure(i));
   }
 }
 
