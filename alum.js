@@ -53,9 +53,13 @@ Layout.prototype.apply = function(windowId, applyDone) {
 }
 
 ////// Slot
-function Slot(number) {
+function Slot(number, windowId) {
   this.number = number;
-  this.windowId = -1;  // unset
+  if (windowId == null) {
+    this.windowId = -1;  // unset
+  } else {
+    this.windowId = windowId;
+  }
 }
 
 Slot.addCurrent = function(slot) {

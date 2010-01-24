@@ -18,10 +18,34 @@ function handleBrowserAction(tab) {
   });
 }
 
+function openAllWindows(event) {
+  // TODO: Deal with the case when there's no config setup.
+  var columns = localStorage.getItem("config:columns");
+  var rows = localStorage.getItem("config:rows");
+  var savedSlots = JSON.parse(localStorage.getItem("config:savedSlots"));
+  var width = window.screen.availWidth;
+  var height = window.screen.availHeight;
+  var columnWidth = (1.0 * width) / columns;
+  var rowHeight = (1.0 * height) / rows;
+
+  for (var i = 0; i < savedSlots.length; ++i) {
+    var slot = savedSlots[i];
+    chrome.windows.create({
+      left: Math.floor(slot.x * columnWidth),
+      top: Math.floor(slot.y * rowHeight),
+      width: Math.floor(slot.width * columnWidth),
+      height: Math.floor(slot.height * rowHeight)
+    }, function(window) {
+      Slot.set(new Slot(i+1, window.id));
+    });
+  }
+}
+
 function handleHotKey(event) {
   // TODO: Add some dummy hotkeys.
   if (event.keyIdentifier == 'U+0042' && event.ctrlKey) {
     console.log('hot key!');
+    openAllWindows();
   }
 }
 
@@ -32,6 +56,7 @@ function handleRemoveWindow(windowId) {
 }
 
 function initAlum() {
+  // Set up event handlers.
   chrome.browserAction.onClicked.addListener(function(tab) {
     handleBrowserAction(tab);
   });
