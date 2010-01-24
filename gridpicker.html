@@ -66,6 +66,7 @@ h1, h3 {
 <link type="text/css" href="jquery/css/smoothness/jquery-ui-1.7.2.custom.css" rel="stylesheet" />	
 <script type="text/javascript" src="jquery/js/jquery-1.3.2.min.js"></script>
 <script type="text/javascript" src="jquery/js/jquery-ui-1.7.2.custom.min.js"></script>
+<script type="text/javascript" src="json2.js"></script>
 
 <script type="text/javascript">
 
@@ -132,7 +133,6 @@ h1, h3 {
         row[y] = null;
       }
     }
-    this.activeSlots = this.numRows * this.numColumns;
 
     // Remove all old grid elements.
     var children = $(container).children(".slot");
@@ -145,6 +145,7 @@ h1, h3 {
                       "position": "absolute"});
 
     if (savedSlots != null) {
+      this.activeSlots = savedSlots.length;
       for (var i = 0; i < savedSlots.length; ++i) {
         var current = savedSlots[i];
         var slot = this.createSlot(current.x, current.y, "" + (i + 1),
@@ -157,6 +158,7 @@ h1, h3 {
       }
     } else {
       // Re-fill the grid.
+      this.activeSlots = this.numRows * this.numColumns;
       for (var x = 0; x < this.numColumns; ++x) {
         for (var y = 0; y < this.numRows; ++y) {
           var slotNumber = x + (this.numColumns * y) + 1;
@@ -252,9 +254,6 @@ h1, h3 {
           width: (current.innerWidth() + 2) / this.slotWidth,
           height: (current.innerHeight() + 2) / this.slotHeight
       });
-      for (var k in config[i]) {
-        console.log(i + ": " + k + "=" + config[i][k]);
-      }
     }
     return config;
   }
@@ -271,13 +270,16 @@ h1, h3 {
     if (columns == null || rows == null || savedSlots == null) {
       return null;
     }
+    savedSlots = JSON.parse(savedSlots);
     return new Grid(columns, rows, "#gridcontainer", savedSlots)
   }
 
   function saveState() {
     localStorage.setItem("config:columns", GRID.numColumns);
     localStorage.setItem("config:rows", GRID.numRows);
-    localStorage.setItem("config:savedSlots", GRID.dumpSlots());
+    var jsonSlots = JSON.stringify(GRID.dumpSlots());
+    console.log("Config saved: " + jsonSlots);
+    localStorage.setItem("config:savedSlots", jsonSlots);
   }
 
   ////// Event handling.
@@ -349,6 +351,7 @@ h1, h3 {
         for (var y = 0; y < GRID.numRows; ++y) {
           if (GRID.gridColumns[x][y] == null) {
             GRID.gridColumns[x][y] = GRID.createSlot(x, y, ++GRID.activeSlots);
+            saveState();
             return false;
           }
         }
@@ -371,6 +374,7 @@ h1, h3 {
         GRID = new Grid($("#gridwidth").val(),
                         $("#gridheight").val(),
                         "#gridcontainer");
+        saveState();
       }
       return false;
     }
