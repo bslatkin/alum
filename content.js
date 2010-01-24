@@ -1,8 +1,8 @@
-document.addEventListener("keydown", function(event) {
+document.addEventListener("keypress", function(event) {
   if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {
     // Only send through hotkey commands.
     chrome.extension.sendRequest({
-      which: event.which,
+      keyIdentifier: event.keyIdentifier,
       shiftKey: event.shiftKey,
       ctrlKey: event.ctrlKey,
       altKey: event.altKey,

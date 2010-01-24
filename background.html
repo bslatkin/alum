@@ -20,6 +20,9 @@ function handleBrowserAction(tab) {
 
 function handleHotKey(event) {
   // TODO: Add some dummy hotkeys.
+  if (event.keyIdentifier == 'U+0042' && event.ctrlKey) {
+    console.log('hot key!');
+  }
 }
 
 function handleAddWindow(window) {
