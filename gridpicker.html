@@ -278,7 +278,6 @@ h1, h3 {
     localStorage.setItem("config:columns", GRID.numColumns);
     localStorage.setItem("config:rows", GRID.numRows);
     var jsonSlots = JSON.stringify(GRID.dumpSlots());
-    console.log("Config saved: " + jsonSlots);
     localStorage.setItem("config:savedSlots", jsonSlots);
   }
 
