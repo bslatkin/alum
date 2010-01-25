@@ -25,6 +25,9 @@ function openAllWindows(event) {
   var savedSlots = JSON.parse(localStorage.getItem("config:savedSlots"));
   var width = window.screen.availWidth;
   var height = window.screen.availHeight;
+  // Adjust for any menu bars or not visible area at the top of the screen.
+  var offsetX = window.screen.width - width;
+  var offsetY = window.screen.height - height;
   var columnWidth = (1.0 * width) / columns;
   var rowHeight = (1.0 * height) / rows;
 
@@ -37,8 +40,8 @@ function openAllWindows(event) {
   for (var i = 0; i < savedSlots.length; ++i) {
     var slot = savedSlots[i];
     chrome.windows.create({
-      left: Math.floor(slot.x * columnWidth),
-      top: Math.floor(slot.y * rowHeight),
+      left: offsetX + Math.floor(slot.x * columnWidth),
+      top: offsetY + Math.floor(slot.y * rowHeight),
       width: Math.floor(slot.width * columnWidth),
       height: Math.floor(slot.height * rowHeight)
     }, closure(i));
