@@ -154,7 +154,7 @@ Slot.prototype.focus = function() {
       chrome.tabs.executeScript(
         tab.id,
         {
-          code: 'window.alert("doot");'
+          code: 'window.focus();'
         },
         function() {
           console.log("all done focusing");

@@ -51,6 +51,7 @@ function openAllWindows(event) {
 
 function handleHotKey(event) {
   // TODO: Add some dummy hotkeys.
+  console.log('key is ' + event.keyIdentifier);
   if (event.keyIdentifier == 'U+0042' && event.ctrlKey) {
     console.log('hot key!');
     openAllWindows();

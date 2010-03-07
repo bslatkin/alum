@@ -5,7 +5,7 @@
   "icons": {
     "48": "logo-48.png",
     "128": "logo-128.png"
-  }
+  },
   "background_page": "background.html",
   "options_page": "gridpicker.html",
   "content_scripts": [
