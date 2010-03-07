@@ -146,6 +146,7 @@ Slot.prototype.appendTab = function(tab) {
 }
 
 Slot.prototype.focus = function() {
+  // TODO: Clean up these logging statements
   console.log('this works here');
   chrome.tabs.getSelected(this.windowId, function(tab) {
     console.log("found tab " + tab.id);
