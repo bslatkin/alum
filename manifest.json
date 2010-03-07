@@ -1,17 +1,18 @@
 {
-  "name": "Alum",
+  "name": "Alum: Window and tabs manager",
   "version": "0.1",
-  "description": "Window and tabs manager.",
+  "description": "Organize your screen into work zones and quickly switch between them.",
   "background_page": "background.html",
   "options_page": "gridpicker.html",
-  "browser_action": {
-    "default_title": "Alum",
-    "default_icon": "alum.jpg"
-  },
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*"],
-      "js": ["content.js"]
+      "matches": [
+          "http://*/*",
+          "https://*/*"
+          ],
+      "js": [
+          "content.js"
+          ]
     }
   ],
   "permissions": [
