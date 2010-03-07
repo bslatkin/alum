@@ -1,10 +1,15 @@
+<!DOCTYPE html>
 <html>
 <head>
-<title>Alum extension options</title>
+<title>Alum extension</title>
 <style type="text/css">
 
-h1, h3 {
+h1, h2, h3 {
   font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+}
+
+h2 {
+  margin-top: 2em;
 }
 
 .slot {
@@ -38,8 +43,7 @@ h1, h3 {
 }
 
 #newbutton {
-  padding: 20px;
-  margin-right: 1.5em;
+  padding: 7px;
 }
 
 #gridwidth {
@@ -49,16 +53,29 @@ h1, h3 {
 
 #gridheight {
   width: 2.5em;
+  margin-right: 1.5em;
 }
 
 #setgridbutton {
   padding: 7px;
   margin-left: 1.5em;
+  margin-right: 1.5em;
 }
 
-#about {
+#about, #hotkeys {
   margin-left: 1em;
   font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+}
+
+#hotkeys table td {
+  padding-right: 2em;
+  padding-bottom: 1em;
+}
+
+#rotateleft-button,
+#rotateright-button,
+#openall-button {
+  padding: 7px;
 }
 
 </style>
@@ -379,6 +396,16 @@ h1, h3 {
     }
   }
 
+  function setKeyClick(button, title, hotkeyId) {
+    $('<p>Press combination of keys for "' + title + '".</p>').dialog({
+      closeOnEscape: true,
+      draggable: false,
+      modal: true,
+      resizable: false,
+      title: "Set hotkey"
+    });
+  }
+
   ////// Initialization.
 
   $(document).ready(function() {
@@ -388,7 +415,7 @@ h1, h3 {
     }
 
     // New window button.
-    $("<button id='newbutton' type='submit'>Add Window</button>")
+    $("#newbutton")
         .addClass("ui-state-default")
         .addClass("ui-corner-all")
         .addClass("ui-priority-primary")
@@ -401,11 +428,10 @@ h1, h3 {
         .mousedown(function() {
           $(this).addClass("ui-state-active");
         })
-        .click(newWindowClick)
-        .prependTo("#shelfcontainer");
+        .click(newWindowClick);
 
     // Grid reset button.
-    $("<button id='setgridbutton' type='submit'>Reset Grid</button>")
+    $("#setgridbutton")
         .addClass("ui-state-default")
         .addClass("ui-corner-all")
         .addClass("ui-priority-primary")
@@ -418,27 +444,109 @@ h1, h3 {
         .mousedown(function() {
           $(this).addClass("ui-state-active");
         })
-        .click(resetGridClick)
-        .appendTo("#shelfcontainer");
+        .click(resetGridClick);
+
+
+    // Hot key setup buttons.
+    $("#rotateleft-button")
+        .addClass("ui-state-default")
+        .addClass("ui-corner-all")
+        .addClass("ui-priority-primary")
+        .hover(function() {
+          $(this).addClass("ui-state-hover");
+        }, function() {
+          $(this).removeClass("ui-state-active")
+                 .removeClass("ui-state-hover");
+        })
+        .click(function() {
+          setKeyClick($(this), "rotate left", "rotateleft-keys");
+        });
+    $("#rotateright-button")
+        .addClass("ui-state-default")
+        .addClass("ui-corner-all")
+        .addClass("ui-priority-primary")
+        .hover(function() {
+          $(this).addClass("ui-state-hover");
+        }, function() {
+          $(this).removeClass("ui-state-active")
+                 .removeClass("ui-state-hover");
+        })
+        .click(function() {
+          setKeyClick($(this), "rotate right", "rotateright-keys");
+        });
+    $("#openall-button")
+        .addClass("ui-state-default")
+        .addClass("ui-corner-all")
+        .addClass("ui-priority-primary")
+        .hover(function() {
+          $(this).addClass("ui-state-hover");
+        }, function() {
+          $(this).removeClass("ui-state-active")
+                 .removeClass("ui-state-hover");
+        })
+        .click(function() {
+          setKeyClick($(this), "reset/open all windows", "openall-keys");
+        });
   });
 </script>
 
 </head>
 <body>
 
-<h1>Alum extension options</h1>
+<h1>Alum extension</h1>
 <h3>Grid layout</h3>
 
 <div id="gridcontainer"></div>
 
 <div id="shelfcontainer">
-  Columns <input id="gridwidth" type="text" value="4" />
-  Rows <input id="gridheight" type="text" value="3" />
+  <label for="gridwidth">Columns</label>
+  <input id="gridwidth" type="text" value="4" />
+  <label for="gridheight">Rows</label>
+  <input id="gridheight" type="text" value="3" />
+  <button id="setgridbutton" type="submit">Reset Grid</button>
+  <button id="newbutton" type="submit">Add Window</button>
 </div>
 
-<h3>About</h3>
+<h3>Hotkeys</h3>
+<div id="hotkeys">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td>Rotate left</td>
+      <td><button id="rotateleft-button">Set</button></td>
+      <td><div id="rotateleft-keys">Meta + Shift + &larr;</div></td>
+    </tr>
+    <tr>
+      <td>Rotate right</td>
+      <td><button id="rotateright-button">Set</button></td>
+      <td><div id="rotateright-keys">Meta + Shift + &rarr;</div></td>
+    </tr>
+    <tr>
+      <td>Reset/Open<br>windows</td>
+      <td><button id="openall-button">Set</button></td>
+      <td><div id="openall-keys">Alt + Meta + O</div></td>
+    </tr>
+  </table>
+</div>
+
+<h2>About</h2>
 <div id="about">
-  <p>This is some text</p>
+  <p>
+    Brett Slatkin, &copy;2010
+    <br>
+    <a href="http://www.onebigfluke.com">Website</a>
+    <a href="http://www.google.com/profiles/bslatkin/contactme">Email</a>
+  </p>
+  <p>
+    Source licensed under the
+    <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License,
+    Version 2.0</a>.
+    <br>
+    Uses <a href="http://jqueryui.com/">jQuery UI</a> (MIT/GPL) and
+    <a href="http://www.json.org/js.html">json2 parser</a> (free domain).
+  </p>
+  <p>
+    Logo derived from <a href="http://commons.wikimedia.org/wiki/User:Ra'ike">Ra'ike</a>,
+    licensed under <a href="http://creativecommons.org/licenses/by-sa/3.0/deed.en">CC by-sa</a>.
 </div>
 
 </body>
