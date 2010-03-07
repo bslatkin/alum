@@ -415,13 +415,24 @@ h2 {
     }
   }
 
-  function setKeyClick(button, title, hotkeyId) {
+  function setKeyClick(title, hotkeyId) {
+    $(document).keypress(function() {
+      window.alert("here");
+      //console.log("key: " + event.keyIdentifier +
+      //  ", shift " + event.shiftKey +
+      //  ", ctrl " + event.ctrlKey +
+      //  ", alt " + event.altKey +
+      //  ", meta " + event.metaKey);
+    });
     $('<p>Press combination of keys for "' + title + '".</p>').dialog({
       closeOnEscape: true,
       draggable: false,
       modal: true,
       resizable: false,
-      title: "Set hotkey"
+      title: "Set hotkey",
+      close: function() {
+        $(document).unbind('keypress');
+      }
     });
   }
 
@@ -478,7 +489,7 @@ h2 {
                  .removeClass("ui-state-hover");
         })
         .click(function() {
-          setKeyClick($(this), "rotate left", "rotateleft-keys");
+          setKeyClick("rotate left", "rotateleft-keys");
         });
     $("#rotateright-button")
         .addClass("ui-state-default")
@@ -491,7 +502,7 @@ h2 {
                  .removeClass("ui-state-hover");
         })
         .click(function() {
-          setKeyClick($(this), "rotate right", "rotateright-keys");
+          setKeyClick("rotate right", "rotateright-keys");
         });
     $("#openall-button")
         .addClass("ui-state-default")
@@ -504,7 +515,7 @@ h2 {
                  .removeClass("ui-state-hover");
         })
         .click(function() {
-          setKeyClick($(this), "reset/open all windows", "openall-keys");
+          setKeyClick("reset/open all windows", "openall-keys");
         });
   });
 </script>
