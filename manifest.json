@@ -2,6 +2,10 @@
   "name": "Alum: Window and tab manager",
   "version": "0.1",
   "description": "Organize your screen into work zones and quickly switch between them.",
+  "icons": {
+    "48": "logo-48.png",
+    "128": "logo-128.png"
+  }
   "background_page": "background.html",
   "options_page": "gridpicker.html",
   "content_scripts": [
