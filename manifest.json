@@ -1,5 +1,5 @@
 {
-  "name": "Alum: Window and tabs manager",
+  "name": "Alum: Window and tab manager",
   "version": "0.1",
   "description": "Organize your screen into work zones and quickly switch between them.",
   "background_page": "background.html",

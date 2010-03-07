@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Alum extension</title>
+<title>Alum: Options</title>
 <style type="text/css">
 
 h1, h2, h3 {
@@ -36,9 +36,16 @@ h2 {
   border: 2px dashed #aaa;
 }
 
+#gridhelpertext {
+  padding-top: 280px;
+  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  font: -webkit-small-control;
+  margin-left: 1em;
+}
+
 #shelfcontainer {
   margin: 1em;
-  padding-top: 280px;
+  margin-top: 2em;
   font: -webkit-small-control;
 }
 
@@ -493,10 +500,12 @@ h2 {
 </head>
 <body>
 
-<h1>Alum extension</h1>
+<h1>Alum: Options</h1>
 <h3>Grid layout</h3>
 
 <div id="gridcontainer"></div>
+
+<div id="gridhelpertext">Numbers correspond to rotation ordering and adjacency.</div>
 
 <div id="shelfcontainer">
   <label for="gridwidth">Columns</label>
