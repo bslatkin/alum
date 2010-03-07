@@ -415,6 +415,22 @@ h2 {
     }
   }
 
+  // Maps key codes to HTML presentation.
+  var KEY_CODES = {
+    37: '&larr;',
+    39: '&rarr;'
+  };
+
+  // Modifier keys that should not be included.
+  var META_KEYS = {
+    91: 'left meta',
+    92: 'right meta',
+    16: 'shift',
+    17: 'control',
+    18: 'alt',
+    93: 'select ignored'
+  };
+
   function setKeyClick(title, hotkeyId) {
     $('<div>Press combination of keys for "' + title + '".' +
       '<div id="currentkeys" style="text-align: center">&nbsp;</div></div>')
@@ -427,7 +443,12 @@ h2 {
       width: 400,
       open: function(event, ui) {
         $(document).keydown(function(event) {
-          var inputKey = String.fromCharCode(event.keyCode);
+          var inputKey = event.keyCode;
+          if (KEY_CODES[inputKey]) {
+            inputKey = KEY_CODES[inputKey];
+          } else {
+            inputKey = String.fromCharCode(event.keyCode);
+          }
           console.log("key: " + inputKey +
             ", shift " + event.shiftKey +
             ", ctrl " + event.ctrlKey +
@@ -438,10 +459,10 @@ h2 {
           if (event.ctrlKey) showString += "Control + ";
           if (event.altKey) showString += "Alt + ";
           if (event.metaKey) showString += "Meta + ";
-          if (inputKey != 0) {
-            showString += inputKey;
-          } else {
+          if (META_KEYS[event.keyCode]) {
             showString += "?";
+          } else {
+            showString += inputKey;
           }
           $("#currentkeys").html(showString);
         });
