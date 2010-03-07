@@ -416,22 +416,38 @@ h2 {
   }
 
   function setKeyClick(title, hotkeyId) {
-    $(document).keypress(function() {
-      window.alert("here");
-      //console.log("key: " + event.keyIdentifier +
-      //  ", shift " + event.shiftKey +
-      //  ", ctrl " + event.ctrlKey +
-      //  ", alt " + event.altKey +
-      //  ", meta " + event.metaKey);
-    });
-    $('<p>Press combination of keys for "' + title + '".</p>').dialog({
+    $('<div>Press combination of keys for "' + title + '".' +
+      '<div id="currentkeys" style="text-align: center">&nbsp;</div></div>')
+    .dialog({
       closeOnEscape: true,
       draggable: false,
       modal: true,
       resizable: false,
       title: "Set hotkey",
-      close: function() {
-        $(document).unbind('keypress');
+      width: 400,
+      open: function(event, ui) {
+        $(document).keydown(function(event) {
+          var inputKey = String.fromCharCode(event.keyCode);
+          console.log("key: " + inputKey +
+            ", shift " + event.shiftKey +
+            ", ctrl " + event.ctrlKey +
+            ", alt " + event.altKey +
+            ", meta " + event.metaKey);
+          var showString = "";
+          if (event.shiftKey) showString += "Shift + ";
+          if (event.ctrlKey) showString += "Control + ";
+          if (event.altKey) showString += "Alt + ";
+          if (event.metaKey) showString += "Meta + ";
+          if (inputKey != 0) {
+            showString += inputKey;
+          } else {
+            showString += "?";
+          }
+          $("#currentkeys").html(showString);
+        });
+      },
+      close: function(event, ui) {
+        $(document).unbind('keydown');
       }
     });
   }
