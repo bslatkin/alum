@@ -431,7 +431,46 @@ h2 {
     93: 'select ignored'
   };
 
+  function getPressedKeys(event) {
+    var inputKey = event.keyCode;
+    if (KEY_CODES[inputKey]) {
+      inputKey = KEY_CODES[inputKey];
+    } else {
+      inputKey = String.fromCharCode(event.keyCode);
+    }
+    console.log("key: " + inputKey +
+      ", shift " + event.shiftKey +
+      ", ctrl " + event.ctrlKey +
+      ", alt " + event.altKey +
+      ", meta " + event.metaKey);
+    var pressed = {};
+    if (event.shiftKey) pressed["Shift"] = true;
+    if (event.ctrlKey) pressed["Control"] = true;
+    if (event.altKey) pressed["Alt"] = true;
+    if (event.metaKey) pressed["Meta"] = true;
+    if (!META_KEYS[event.keyCode]) {
+      pressed["KeyCode"] = inputKey;
+    }
+    return pressed;
+  }
+
+  function makeKeyString(pressed) {
+    var keyString = "";
+    if (pressed["Shift"]) keyString += "Shift + ";
+    if (pressed["Control"]) keyString += "Control + ";
+    if (pressed["Meta"]) keyString += "Meta + ";
+    if (pressed["Alt"]) keyString += "Alt + ";
+    if (pressed["KeyCode"]) {
+      keyString += pressed["KeyCode"]
+    } else {
+      keyString += "?";
+    }
+    return keyString;
+  }
+
   function setKeyClick(title, hotkeyId) {
+    var pressedKeys = {};
+
     $('<div>Press combination of keys for "' + title + '".' +
       '<div id="currentkeys" style="text-align: center">&nbsp;</div></div>')
     .dialog({
@@ -442,30 +481,21 @@ h2 {
       title: "Set hotkey",
       width: 400,
       open: function(event, ui) {
-        $(document).keydown(function(event) {
-          var inputKey = event.keyCode;
-          if (KEY_CODES[inputKey]) {
-            inputKey = KEY_CODES[inputKey];
-          } else {
-            inputKey = String.fromCharCode(event.keyCode);
-          }
-          console.log("key: " + inputKey +
-            ", shift " + event.shiftKey +
-            ", ctrl " + event.ctrlKey +
-            ", alt " + event.altKey +
-            ", meta " + event.metaKey);
-          var showString = "";
-          if (event.shiftKey) showString += "Shift + ";
-          if (event.ctrlKey) showString += "Control + ";
-          if (event.altKey) showString += "Alt + ";
-          if (event.metaKey) showString += "Meta + ";
-          if (META_KEYS[event.keyCode]) {
-            showString += "?";
-          } else {
-            showString += inputKey;
-          }
-          $("#currentkeys").html(showString);
+        $(document)
+        .keydown(function(event) {
+          $.each(getPressedKeys(event), function(key, value) {
+            pressedKeys[key] = value;
+          });
+          $("#currentkeys").html(makeKeyString(pressedKeys));
         });
+        //.keyup(function(event) {
+        //  var newestPressed = getPressedKeys(event);
+        //  $.each(pressedKeys, function(key, value) {
+        //    newestPressed
+        //    delete pressedKeys[key];
+        //  });
+        //  $("#currentkeys").html(makeKeyString(pressedKeys));
+        //});
       },
       close: function(event, ui) {
         $(document).unbind('keydown');
