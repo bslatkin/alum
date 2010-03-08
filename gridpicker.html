@@ -103,7 +103,7 @@ h2 {
 <script type="text/javascript" src="jquery-1.3.2.min.js"></script>
 <script type="text/javascript" src="jquery-ui-1.7.2.custom.min.js"></script>
 <script type="text/javascript" src="json2.js"></script>
-
+<script type="text/javascript" src="alum.js"></script>
 <script type="text/javascript">
 
   ////// Stateless functions.
@@ -419,6 +419,7 @@ h2 {
   var KEY_CODES = {
     37: '&larr;',
     39: '&rarr;'
+    // TODO: Fill in more here.
   };
 
   // Modifier keys that should not be included.
@@ -443,7 +444,9 @@ h2 {
       ", ctrl " + event.ctrlKey +
       ", alt " + event.altKey +
       ", meta " + event.metaKey);
-    var pressed = {};
+    var pressed = {
+      "RawCode": event.keyCode
+    };
     if (event.shiftKey) pressed["Shift"] = true;
     if (event.ctrlKey) pressed["Control"] = true;
     if (event.altKey) pressed["Alt"] = true;
@@ -470,10 +473,9 @@ h2 {
 
   function setKeyClick(title, hotkeyId) {
     var pressedKeys = {};
-
-    $('<div>Press combination of keys for "' + title + '".' +
-      '<div id="currentkeys" style="text-align: center">&nbsp;</div></div>')
-    .dialog({
+    $("#keytitle").html('"' + title + '"');
+    $("#currentkeys").html("?");
+    $("#keydialog").dialog({
       closeOnEscape: true,
       draggable: false,
       modal: true,
@@ -481,26 +483,46 @@ h2 {
       title: "Set hotkey",
       width: 400,
       open: function(event, ui) {
+        var dialog = $(this);
         $(document)
         .keydown(function(event) {
           $.each(getPressedKeys(event), function(key, value) {
             pressedKeys[key] = value;
           });
           $("#currentkeys").html(makeKeyString(pressedKeys));
+          if (objectSize(pressedKeys) >= 3 && pressedKeys["KeyCode"]) {
+            localStorage.setItem("config:" + hotkeyId,
+                                 JSON.stringify(pressedKeys));
+            dialog.dialog("close");
+            $("#" + hotkeyId).html(makeKeyString(pressedKeys));
+          }
+        })
+        .keyup(function(event) {
+          var newestPressed = getPressedKeys(event);
+          $.each(pressedKeys, function(key, value) {
+            if ((key == "KeyCode" && newestPressed[key] == value) ||
+                newestPressed[key] != value) {
+              delete pressedKeys[key];
+            }
+          });
+          $("#currentkeys").html(makeKeyString(pressedKeys));
         });
-        //.keyup(function(event) {
-        //  var newestPressed = getPressedKeys(event);
-        //  $.each(pressedKeys, function(key, value) {
-        //    newestPressed
-        //    delete pressedKeys[key];
-        //  });
-        //  $("#currentkeys").html(makeKeyString(pressedKeys));
-        //});
       },
       close: function(event, ui) {
-        $(document).unbind('keydown');
+        $(document).unbind("keydown").unbind("keyup");
+        $(this).dialog("destroy");
       }
     });
+  }
+
+  function loadHotkeyConfig(hotkeyId) {
+    var value = localStorage.getItem("config:" + hotkeyId);
+    console.log("loaded value: " + value);
+    var keyString = "?";
+    if (value) {
+      keyString = makeKeyString(JSON.parse(value));
+    }
+    $("#" + hotkeyId).html(keyString);
   }
 
   ////// Initialization.
@@ -558,6 +580,8 @@ h2 {
         .click(function() {
           setKeyClick("rotate left", "rotateleft-keys");
         });
+    loadHotkeyConfig("rotateleft-keys");
+
     $("#rotateright-button")
         .addClass("ui-state-default")
         .addClass("ui-corner-all")
@@ -571,6 +595,8 @@ h2 {
         .click(function() {
           setKeyClick("rotate right", "rotateright-keys");
         });
+    loadHotkeyConfig("rotateright-keys");
+
     $("#openall-button")
         .addClass("ui-state-default")
         .addClass("ui-corner-all")
@@ -584,6 +610,7 @@ h2 {
         .click(function() {
           setKeyClick("reset/open all windows", "openall-keys");
         });
+    loadHotkeyConfig("openall-keys");
   });
 </script>
 
@@ -611,6 +638,11 @@ h2 {
 
 <h3>Hotkeys</h3>
 <div id="hotkeys">
+  <div id="keydialog" style="display: none">
+    Press combination of keys for <span id="keytitle"></span>.
+    <p id="currentkeys" style="text-align: center">?</p>
+  </div>
+
   <table border="0" cellspacing="0" cellpadding="0">
     <tr>
       <td>Rotate left</td>
