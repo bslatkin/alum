@@ -10,6 +10,11 @@
 var SlotMap = {};  // number -> Slot
 var WindowMap = {};  // windowId -> number
 
+// Key preferences.
+var RotateRight = {};
+var RotateLeft = {};
+var OpenAll = {};
+
 ////////////////////////////////////////////////////////////////////////////////
 // Init/event handling
 function handleBrowserAction(tab) {
@@ -50,17 +55,20 @@ function openAllWindows(event) {
 }
 
 function handleHotKey(event) {
-  // TODO: Add some dummy hotkeys.
-  console.log('key is ' + event.keyIdentifier);
-  if (event.keyIdentifier == 'U+0042' && event.ctrlKey) {
-    console.log('hot key!');
+  var pressed = getPressedKeys(event);
+  if (objectsEqual(pressed, OpenAll)) {
     openAllWindows();
-  } else if (event.keyIdentifier == 'U+0044' && event.ctrlKey) {
+  } else if (objectsEqual(pressed, RotateRight)) {
     Slot.rotate(true);
-  } else if (event.keyIdentifier == 'U+0044' &&
-             event.ctrlKey && event.shiftKey) {
+  } else if (objectsEqual(pressed, RotateLeft)) {
     Slot.rotate(false);
   }
+}
+
+function loadPreferences() {
+  RotateRight = loadHotkeyConfig("rotateleft-keys");
+  RotateLeft = loadHotkeyConfig("rotateright-keys");
+  OpenAll = loadHotkeyConfig("openall-keys");
 }
 
 function handleAddWindow(window) {
@@ -70,6 +78,8 @@ function handleRemoveWindow(windowId) {
 }
 
 function initAlum() {
+  loadPreferences();
+
   // Set up event handlers.
   chrome.browserAction.onClicked.addListener(function(tab) {
     handleBrowserAction(tab);

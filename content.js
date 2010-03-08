@@ -1,8 +1,8 @@
-document.addEventListener("keypress", function(event) {
+// Send through hotkey key-strokes whenever a key modifier is present.
+document.addEventListener("keydown", function(event) {
   if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {
-    // Only send through hotkey commands.
     chrome.extension.sendRequest({
-      keyIdentifier: event.keyIdentifier,
+      keyCode: event.keyCode,
       shiftKey: event.shiftKey,
       ctrlKey: event.ctrlKey,
       altKey: event.altKey,
@@ -11,15 +11,3 @@ document.addEventListener("keypress", function(event) {
   }
   return false;
 }, false);
-
-// Not used yet because I need window.focus.
-//chrome.extension.onRequest.addListener(
-//  function(request, sender, sendResponse) {
-//    console.log('got the event! ' + window.focus);
-//    try {
-//      window.focus();
-//    } catch (e) {
-//      console.log('exception: ' + e);
-//    }
-//    sendResponse({'foo': 'got it!'});
-//  });
