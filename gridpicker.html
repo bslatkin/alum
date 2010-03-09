@@ -40,11 +40,11 @@ h2 {
   padding-top: 280px;
   font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
   font: -webkit-small-control;
-  margin-left: 1em;
+  margin-left: 15px;
 }
 
 #shelfcontainer {
-  margin: 1em;
+  margin: 15px;
   margin-top: 2em;
   font: -webkit-small-control;
 }
@@ -65,12 +65,12 @@ h2 {
 
 #setgridbutton {
   padding: 7px;
-  margin-left: 1.5em;
+  margin-left: 15px;
   margin-right: 1.5em;
 }
 
-#about, #hotkeys {
-  margin-left: 1em;
+#about, #hotkeys, #checkboxes {
+  margin-left: 15px;
   font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
 }
 
@@ -83,6 +83,15 @@ h2 {
 #rotateright-button,
 #openall-button {
   padding: 7px;
+}
+
+#checkboxes {
+  margin-top: 1em;
+}
+
+#checkboxes input {
+  margin: 0;
+  margin-right: 0.5em;
 }
 
 #about {
@@ -508,6 +517,16 @@ h2 {
         })
         .click(resetGridClick);
 
+    // Open at startup checkbox.
+    $("#openatstartup")
+    .click(function() {
+      localStorage.setItem("config:openatstartup", Boolean($(this).is(":checked")));
+    });
+    if (localStorage.getItem("config:openatstartup")) {
+      $("#openatstartup").attr(
+          "checked",
+          localStorage.getItem("config:openatstartup") == "true");
+    }
 
     // Hot key setup buttons.
     $("#rotateleft-button")
@@ -555,8 +574,9 @@ h2 {
         });
     updateHotkeyConfig("openall-keys");
 
-    // TODO: On options window close cause background page to
-    // load its preferences!
+    $(window).unload(function() {
+      bg().loadPreferences();
+    });
   });
 </script>
 
@@ -580,6 +600,11 @@ h2 {
   <input id="gridheight" type="text" value="3" />
   <button id="setgridbutton" type="submit">Reset Grid</button>
   <button id="newbutton" type="submit">Add Window</button>
+</div>
+
+<div id="checkboxes">
+  <input id="openatstartup" type="checkbox"/>
+  <label for="openatstartup">Open grid windows at launch</label>
 </div>
 
 <h3>Hotkeys</h3>

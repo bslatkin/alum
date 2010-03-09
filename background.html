@@ -8,9 +8,12 @@
 // Global data
 
 var SlotMap = {};  // number -> Slot
-var WindowMap = {};  // windowId -> number
+var WindowMap = {};  // windowId -> Slot
+var Rotating = false;
+var BrowserStarted = false;
 
-// Key preferences.
+// Preferences.
+var OpenAtStartup = false;
 var RotateRight = {};
 var RotateLeft = {};
 var OpenAll = {};
@@ -25,13 +28,12 @@ function handleBrowserAction(tab) {
 }
 
 function openAllWindows(event) {
-  // TODO: Deal with the case when there's no config setup.
   var columns = localStorage.getItem("config:columns");
   var rows = localStorage.getItem("config:rows");
   var savedSlots = JSON.parse(localStorage.getItem("config:savedSlots"));
   var width = window.screen.availWidth;
   var height = window.screen.availHeight;
-  // Adjust for any menu bars or not visible area at the top of the screen.
+  // TODO: Adjust for any menu bars or not visible area at the top of the screen.
   var offsetX = window.screen.width - width;
   var offsetY = window.screen.height - height;
   var columnWidth = (1.0 * width) / columns;
@@ -69,12 +71,39 @@ function loadPreferences() {
   RotateRight = loadHotkeyConfig("rotateleft-keys");
   RotateLeft = loadHotkeyConfig("rotateright-keys");
   OpenAll = loadHotkeyConfig("openall-keys");
+  OpenAtStartup = localStorage.getItem("config:openatstartup");
+
+  // Set defaults on first load.
+  if (!localStorage.getItem("config:columns")) {
+    localStorage.setItem("config:columns", 4);
+  }
+  if (!localStorage.getItem("config:rows")) {
+    localStorage.setItem("config:rows", 3);
+  }
+  if (!localStorage.getItem("config:savedSlots")) {
+    localStorage.setItem(
+        "config:savedSlots",
+        JSON.stringify([
+          {"x":0,"y":0,"width":2,"height":3},
+          {"x":2,"y":0,"width":2,"height":3}
+        ]));
+  }
 }
 
 function handleAddWindow(window) {
+  if (!BrowserStarted) {
+    loadPreferences();
+    chrome.windows.remove(window.id, function() {
+      if (OpenAtStartup) {
+        openAllWindows();
+      }
+    });
+    BrowserStarted = true;
+  }
 }
 
 function handleRemoveWindow(windowId) {
+  Slot.removeWindow(windowId);
 }
 
 function initAlum() {

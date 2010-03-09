@@ -126,12 +126,12 @@ function getPressedKeys(event) {
   } else {
     inputKey = String.fromCharCode(event.keyCode);
   }
-  console.log("key: " + inputKey +
-    ", shift " + event.shiftKey +
-    ", ctrl " + event.ctrlKey +
-    ", alt " + event.altKey +
-    ", meta " + event.metaKey +
-    ", raw " + event.keyCode);
+  // console.log("key: " + inputKey +
+  //   ", shift " + event.shiftKey +
+  //   ", ctrl " + event.ctrlKey +
+  //   ", alt " + event.altKey +
+  //   ", meta " + event.metaKey +
+  //   ", raw " + event.keyCode);
   var pressed = {
     "RawCode": event.keyCode
   };
@@ -223,7 +223,11 @@ Slot.get = function(number) {
 }
 
 Slot.rotate = function(positive) {
-  // TODO: Protect against multiple concurrent rotates!
+  if (bg().Rotating) {
+    console.log("Already rotating!");
+    return;
+  }
+  bg().Rotating = true;
   var count = Slot.count();
   if (count == 0) {
     return;
@@ -246,10 +250,12 @@ Slot.rotate = function(positive) {
             Slot.get(j).windowId = toWindowArray[j].id;
           }
           // Refocus the originally focused slot.
+          // TODO: This doesn't work right now due to chrome extensions API
+          // limitations with their security model.
           if (typeof(frontSlot) != "undefined") {
-            console.log("focusing slot: " + frontSlot.number + ", window: " + frontSlot.windowId);
             frontSlot.focus();
           }
+          bg().Rotating = false;
         } else {
           Layout.buildFromWindow(toWindowArray[index])
               .apply(fromWindowArray[index].id, function(window) {
@@ -276,6 +282,23 @@ Slot.withSortedWindows = function(callback) {
   });
 }
 
+Slot.removeWindow = function(windowId) {
+  var removeSlot = bg().WindowMap[windowId];
+  if (!removeSlot) return;
+  console.log('removing unused slot: ' + removeSlot.number + ", window " + windowId);
+  var count = Slot.count();
+  var newNumber = 0;
+  for (var i = 0; i < count; ++i) {
+    if (i == removeSlot.number) continue;
+    var slot = bg().SlotMap[i];
+    slot.number = newNumber++;
+    bg().SlotMap[slot.number] = slot;
+    bg().WindowMap[slot.windowId] = slot;
+  }
+  delete bg().SlotMap[newNumber];
+  delete bg().WindowMap[windowId];
+}
+
 Slot.prototype.appendTab = function(tab) {
   this.getTabCount(function(count) {
     chrome.tabs.move(tab.id, {
@@ -286,26 +309,21 @@ Slot.prototype.appendTab = function(tab) {
 }
 
 Slot.prototype.focus = function() {
-  // TODO: Clean up these logging statements
-  console.log('this works here');
-  chrome.tabs.getSelected(this.windowId, function(tab) {
-    console.log("found tab " + tab.id);
-    try {
-      chrome.tabs.executeScript(
-        tab.id,
-        {
-          code: 'window.focus();'
-        },
-        function() {
-          console.log("all done focusing");
-        })
-    } catch (e) {
-      console.log('Exception doing that: ' + e);
-    }
-    // chrome.tabs.sendRequest(tab.id, {}, function(response) {
-    //   console.log('received: ' + response);
-    // });
-  });
+  // chrome.tabs.getSelected(this.windowId, function(tab) {
+  //   console.log("found tab " + tab.id);
+  //   try {
+  //     chrome.tabs.executeScript(
+  //       tab.id,
+  //       {
+  //         code: 'window.focus();'
+  //       },
+  //       function() {
+  //         console.log("all done focusing");
+  //       })
+  //   } catch (e) {
+  //     console.log('Exception doing that: ' + e);
+  //   }
+  // });
 }
 
 Slot.prototype.next = function() {
