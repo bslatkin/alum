@@ -464,6 +464,10 @@ h2 {
       close: function(event, ui) {
         $(document).unbind("keydown").unbind("keyup");
         $(this).dialog("destroy");
+        if (objectSize(pressedKeys) == 0) {
+          localStorage.removeItem("config:" + hotkeyId);
+          $("#" + hotkeyId).html("?");
+        }
       }
     });
   }

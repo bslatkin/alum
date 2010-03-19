@@ -10,10 +10,8 @@
 var SlotMap = {};  // number -> Slot
 var WindowMap = {};  // windowId -> Slot
 var Rotating = false;
-var BrowserStarted = false;
 
 // Preferences.
-var OpenAtStartup = false;
 var RotateRight = {};
 var RotateLeft = {};
 var OpenAll = {};
@@ -21,10 +19,8 @@ var OpenAll = {};
 ////////////////////////////////////////////////////////////////////////////////
 // Init/event handling
 function handleBrowserAction(tab) {
-  chrome.tabs.create({
-    windowId: tab.windowId,
-    url: "popup.html"
-  });
+  console.log("Browser action clicked!");
+  openAllWindows();
 }
 
 function openAllWindows(event) {
@@ -71,7 +67,6 @@ function loadPreferences() {
   RotateRight = loadHotkeyConfig("rotateleft-keys");
   RotateLeft = loadHotkeyConfig("rotateright-keys");
   OpenAll = loadHotkeyConfig("openall-keys");
-  OpenAtStartup = localStorage.getItem("config:openatstartup");
 
   // Set defaults on first load.
   if (!localStorage.getItem("config:columns")) {
@@ -90,18 +85,6 @@ function loadPreferences() {
   }
 }
 
-function handleAddWindow(window) {
-  if (!BrowserStarted) {
-    loadPreferences();
-    chrome.windows.remove(window.id, function() {
-      if (OpenAtStartup) {
-        openAllWindows();
-      }
-    });
-    BrowserStarted = true;
-  }
-}
-
 function handleRemoveWindow(windowId) {
   Slot.removeWindow(windowId);
 }
@@ -109,18 +92,21 @@ function handleRemoveWindow(windowId) {
 function initAlum() {
   loadPreferences();
 
-  // Set up event handlers.
   chrome.browserAction.onClicked.addListener(function(tab) {
     handleBrowserAction(tab);
   });
   chrome.extension.onRequest.addListener(function(request, sender, unused) {
-    handleHotKey(request);
-  });
-  chrome.windows.onCreated.addListener(function(window) {
-    handleAddWindow(window);
+    if (request.action == "key") {
+      handleHotKey(request);
+    } else {
+      Slot.updateBadges();
+    }
   });
   chrome.windows.onRemoved.addListener(function(windowId) {
     handleRemoveWindow(windowId);
+  });
+  chrome.tabs.onAttached.addListener(function(tabId, attachInfo) {
+    Slot.updateBadges();
   });
 }
 

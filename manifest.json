@@ -8,6 +8,10 @@
   },
   "background_page": "background.html",
   "options_page": "gridpicker.html",
+  "browser_action": {
+    "default_icon": "logo-19.png",
+    "default_title": "Alum"
+  },
   "content_scripts": [
     {
       "matches": [
@@ -16,7 +20,8 @@
           ],
       "js": [
           "content.js"
-          ]
+          ],
+      "run_at": "document_start"
     }
   ],
   "permissions": [
