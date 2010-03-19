@@ -312,7 +312,6 @@ Slot.withSortedWindows = function(callback) {
 Slot.removeWindow = function(windowId) {
   var removeSlot = bg().WindowMap[windowId];
   if (!removeSlot) return;
-  console.log('removing unused slot: ' + removeSlot.number + ", window " + windowId);
   var count = Slot.count();
   var newNumber = 0;
   for (var i = 0; i < count; ++i) {
