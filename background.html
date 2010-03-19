@@ -35,9 +35,7 @@ function openAllWindows(event) {
   var columnWidth = (1.0 * width) / columns;
   var rowHeight = (1.0 * height) / rows;
 
-  var current = 0;
   function openSlot(next) {
-    if (next >= savedSlots.length) return;
     var slot = savedSlots[next];
     chrome.windows.create({
       left: offsetX + Math.floor(slot.x * columnWidth),
@@ -46,10 +44,11 @@ function openAllWindows(event) {
       height: Math.floor(slot.height * rowHeight)
     }, function(window) {
       Slot.set(new Slot(next, window.id));
-      openSlot(next + 1);
     });
   }
-  openSlot(0);
+  for (var i = 0; i < savedSlots.length; ++i) {
+    openSlot(i);
+  }
 }
 
 function handleHotKey(event) {
@@ -89,7 +88,6 @@ function assignBadge(tabId, windowId) {
   var slot = WindowMap[windowId];
   if (!slot) return;
   var number = slot.number + 1;
-  console.log("Assigning badge for " + number);
   chrome.browserAction.setBadgeText({
     "text": "" + number,
     "tabId": tabId,

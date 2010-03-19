@@ -171,27 +171,6 @@ function loadHotkeyConfig(hotkeyId) {
 ////////////////////////////////////////////////////////////////////////////////
 // Classes
 
-////// Layout
-function Layout(x, y, width, height) {
-  this.x = x;
-  this.y = y;
-  this.width = width;
-  this.height = height;
-}
-
-Layout.buildFromWindow = function(window) {
-  return new Layout(window.left, window.top, window.width, window.height);
-}
-
-Layout.prototype.apply = function(windowId, applyDone) {
-  chrome.windows.update(windowId, {
-    left: this.x,
-    top: this.y,
-    width: this.width,
-    height: this.height
-  }, applyDone);
-}
-
 ////// Slot
 function Slot(number, windowId) {
   this.number = number;
@@ -233,7 +212,9 @@ Slot.rotate = function(positive) {
     return;
   }
   withForemostTab(function(frontWindow, frontTab) {
-    var frontSlot = bg().WindowMap[frontWindow.id];
+
+  // TODO: Refocus the front tab
+  var frontSlot = bg().WindowMap[frontWindow.id];
 
     Slot.withSortedWindows(function(fromWindowArray) {
       var toWindowArray = fromWindowArray.slice();
@@ -243,33 +224,47 @@ Slot.rotate = function(positive) {
         toWindowArray.unshift(toWindowArray.pop());  // N-1 -> 0
       }
 
-      var popAndUpdate = function(index) {
-        if (index >= fromWindowArray.length) {
-          // Recursion done. Update each slot with its new window ID.
-          for (var j = 0; j < count; ++j) {
-            Slot.get(j).windowId = toWindowArray[j].id;
+      chrome.tabs.create(
+        {"windowId": toWindowArray[0].id,
+         "selected": false,
+         "url": "about:blank" }, function(dummyTab) {
+        var popAndUpdate = function(index, tabIndex) {
+          if (index >= fromWindowArray.length) {
+            chrome.tabs.remove(dummyTab.id, function() {
+              console.log('Rotation done');
+              bg().Rotating = false;
+            });
+            return;
           }
-          // Refocus the originally focused slot.
-          // TODO: This doesn't work right now due to chrome extensions API
-          // limitations with their security model.
-          if (typeof(frontSlot) != "undefined") {
-            frontSlot.focus();
+          if (tabIndex >= fromWindowArray[index].tabs.length) {
+            console.log('Rotation done for slot index ' + index);
+            popAndUpdate(index+1, 0);
+          } else {
+            console.log('From window: ' + fromWindowArray[index].id + ' to ' +
+                        toWindowArray[index].id);
+            chrome.tabs.move(
+                fromWindowArray[index].tabs[tabIndex].id,
+                {"windowId": toWindowArray[index].id, "index": tabIndex},
+                function() {
+                  popAndUpdate(index, tabIndex+1);
+
+                  // Keep the selected tab selected in the new window.
+                  if (fromWindowArray[index].tabs[tabIndex].selected) {
+                    chrome.tabs.update(
+                        fromWindowArray[index].tabs[tabIndex].id,
+                        {"selected": true});
+                  }
+                });
           }
-          bg().Rotating = false;
-        } else {
-          Layout.buildFromWindow(toWindowArray[index])
-              .apply(fromWindowArray[index].id, function(window) {
-                popAndUpdate(index+1);
-              });
         }
-      }
-      popAndUpdate(0);
+        popAndUpdate(0, 0);
+      });
     });
   });
 }
 
 Slot.withSortedWindows = function(callback) {
-  chrome.windows.getAll({populate: false}, function(windowArray) {
+  chrome.windows.getAll({populate: true}, function(windowArray) {
     // Sort windowArray by slots, ignoring unslotted windows.
     var sortedWindows = [];
     for (var i = 0; i < windowArray.length; ++i) {
