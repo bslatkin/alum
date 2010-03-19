@@ -2,7 +2,6 @@
 document.addEventListener("keydown", function(event) {
   if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {
     chrome.extension.sendRequest({
-      action: "key",
       keyCode: event.keyCode,
       shiftKey: event.shiftKey,
       ctrlKey: event.ctrlKey,
@@ -12,5 +11,3 @@ document.addEventListener("keydown", function(event) {
   }
   return false;
 }, false);
-
-chrome.extension.sendRequest({action: "start"});

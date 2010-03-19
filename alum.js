@@ -222,32 +222,6 @@ Slot.get = function(number) {
   return bg().SlotMap[number];
 }
 
-Slot.updateBadges = function() {
-  var assignBadge = function(tabId, windowId) {
-    var slot = bg().WindowMap[windowId];
-    if (!slot) return;
-    var number = slot.number + 1;
-    console.log("Assigning badge for " + number);
-    chrome.browserAction.setBadgeText({
-      "text": "" + number,
-      "tabId": tabId,
-    });
-    chrome.browserAction.setTitle({
-      "title": "Alum window #" + number,
-      "tabId": tabId,
-    });
-  }
-
-  chrome.windows.getAll({"populate": true}, function(windows) {
-    for (var i = 0; i < windows.length; ++i) {
-      for (var j = 0; j < windows[i].tabs.length; ++j) {
-        var tab = windows[i].tabs[j];
-        assignBadge(tab.id, tab.windowId);
-      }
-    }
-  });
-}
-
 Slot.rotate = function(positive) {
   if (bg().Rotating) {
     console.log("Already rotating!");
@@ -281,7 +255,6 @@ Slot.rotate = function(positive) {
           if (typeof(frontSlot) != "undefined") {
             frontSlot.focus();
           }
-          Slot.updateBadges();
           bg().Rotating = false;
         } else {
           Layout.buildFromWindow(toWindowArray[index])

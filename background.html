@@ -37,11 +37,7 @@ function openAllWindows(event) {
 
   var current = 0;
   function openSlot(next) {
-    if (next >= savedSlots.length) {
-      // TODO: Remove this waiting!
-      window.setTimeout(Slot.updateBadges, 500);
-      return;
-    }
+    if (next >= savedSlots.length) return;
     var slot = savedSlots[next];
     chrome.windows.create({
       left: offsetX + Math.floor(slot.x * columnWidth),
@@ -89,6 +85,21 @@ function loadPreferences() {
   }
 }
 
+function assignBadge(tabId, windowId) {
+  var slot = WindowMap[windowId];
+  if (!slot) return;
+  var number = slot.number + 1;
+  console.log("Assigning badge for " + number);
+  chrome.browserAction.setBadgeText({
+    "text": "" + number,
+    "tabId": tabId,
+  });
+  chrome.browserAction.setTitle({
+    "title": "Alum window #" + number,
+    "tabId": tabId,
+  });
+}
+
 function handleRemoveWindow(windowId) {
   Slot.removeWindow(windowId);
 }
@@ -100,17 +111,18 @@ function initAlum() {
     handleBrowserAction(tab);
   });
   chrome.extension.onRequest.addListener(function(request, sender, unused) {
-    if (request.action == "key") {
-      handleHotKey(request);
-    } else {
-      Slot.updateBadges();
-    }
+    handleHotKey(request);
   });
   chrome.windows.onRemoved.addListener(function(windowId) {
     handleRemoveWindow(windowId);
   });
   chrome.tabs.onAttached.addListener(function(tabId, attachInfo) {
-    Slot.updateBadges();
+    assignBadge(tabId, attachInfo.newWindowId);
+  });
+  chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+    if (changeInfo.status == "complete") {
+      assignBadge(tabId, tab.windowId);
+    }
   });
 }
 
