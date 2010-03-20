@@ -279,7 +279,17 @@ Slot.prototype.takeCurrentTab = function() {
       chrome.tabs.getAllInWindow(slot.windowId, function(allTabs) {
         var done = function() {
           chrome.tabs.move(
-              tab.id, {"windowId": slot.windowId, "index": allTabs.length});
+              tab.id,
+              {"windowId": slot.windowId, "index": allTabs.length},
+              function() {
+                // If the destination window only had a newtab or blank page,
+                // then replace it with the classified tab.
+                if (allTabs.length == 1 &&
+                    (allTabs[0].url == "chrome://newtab/" ||
+                     allTabs[0].url == "about:blank")) {
+                  chrome.tabs.remove(allTabs[0].id);
+                }
+              });
         };
         chrome.tabs.getAllInWindow(window.id, function(sourceTabs) {
           if (sourceTabs.length == 1) {

@@ -24,6 +24,12 @@ function handleBrowserAction(tab) {
 }
 
 function openAllWindows(event) {
+  // If some are already open, do nothing.
+  if (Slot.count() > 0) {
+    console.log("Some slots already open.");
+    return;
+  }
+
   var columns = localStorage.getItem("config:columns");
   var rows = localStorage.getItem("config:rows");
   var savedSlots = JSON.parse(localStorage.getItem("config:savedSlots"));
