@@ -19,10 +19,6 @@ var ClassifyTab = {};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Init/event handling
-function handleBrowserAction(tab) {
-  openAllWindows();
-}
-
 function openAllWindows(event) {
   // If some are already open, do nothing.
   if (Slot.count() > 0) {
@@ -156,9 +152,6 @@ function handleRemoveWindow(windowId) {
 function initAlum() {
   loadPreferences();
 
-  chrome.browserAction.onClicked.addListener(function(tab) {
-    handleBrowserAction(tab);
-  });
   chrome.extension.onRequest.addListener(function(request, sender, unused) {
     handleHotKey(request);
   });

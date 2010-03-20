@@ -10,7 +10,8 @@
   "options_page": "gridpicker.html",
   "browser_action": {
     "default_icon": "logo-19.png",
-    "default_title": "Alum"
+    "default_title": "Alum",
+    "popup": "popup.html"
   },
   "content_scripts": [
     {
