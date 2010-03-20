@@ -209,7 +209,7 @@ Slot.rotate = function(positive) {
     }
     chrome.tabs.create(
       {"windowId": dummyWindowId,
-       "selected": false,
+       "selected": true,
        "url": positive ? "right.html" : "left.html" }, function(dummyTab) {
       var popAndUpdate = function(index, tabIndex) {
         if (index >= fromWindowArray.length) {
