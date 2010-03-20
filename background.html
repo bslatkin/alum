@@ -35,7 +35,8 @@ function openAllWindows(event) {
   var savedSlots = JSON.parse(localStorage.getItem("config:savedSlots"));
   var width = window.screen.availWidth;
   var height = window.screen.availHeight;
-  // TODO: Adjust for any menu bars or not visible area at the top of the screen.
+  // TODO: This adjusts for menu bars or not visible area at on the screen,
+  // but on Mac OS X it leaves a few extra pixels at the top.
   var offsetX = window.screen.width - width;
   var offsetY = window.screen.height - height;
   var columnWidth = (1.0 * width) / columns;
