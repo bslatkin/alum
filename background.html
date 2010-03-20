@@ -100,20 +100,38 @@ function loadPreferences() {
 
 function assignBadge(tabId, windowId) {
   var slot = WindowMap[windowId];
-  if (!slot) return;
-  var number = slot.number + 1;
-  chrome.browserAction.setBadgeText({
-    "text": "" + number,
-    "tabId": tabId,
-  });
-  chrome.browserAction.setTitle({
-    "title": "Alum window #" + number,
-    "tabId": tabId,
-  });
+  if (slot) {
+    var number = slot.number + 1;
+    chrome.browserAction.setBadgeBackgroundColor({
+      "color": [0, 170, 212, 255],
+      "tabId": tabId,
+    });
+    chrome.browserAction.setBadgeText({
+      "text": "" + number,
+      "tabId": tabId,
+    });
+    chrome.browserAction.setTitle({
+      "title": "Alum window #" + number,
+      "tabId": tabId,
+    });
+  } else {
+    // Clear badge.
+    chrome.browserAction.setBadgeBackgroundColor({
+      "color": [143, 143, 143, 255],
+      "tabId": tabId,
+    });
+    chrome.browserAction.setBadgeText({
+      "text": "X",
+      "tabId": tabId,
+    });
+    chrome.browserAction.setTitle({
+      "title": "Not an Alum window",
+      "tabId": tabId,
+    });
+  }
 }
 
-function handleRemoveWindow(windowId) {
-  Slot.removeWindow(windowId);
+function updateBadges() {
   chrome.windows.getAll({"populate": true}, function(windows) {
     for (var i = 0; i < windows.length; ++i) {
       for (var j = 0; j < windows[i].tabs.length; ++j) {
@@ -121,6 +139,11 @@ function handleRemoveWindow(windowId) {
       }
     }
   });
+}
+
+function handleRemoveWindow(windowId) {
+  Slot.removeWindow(windowId);
+  updateBadges();
 }
 
 function initAlum() {
@@ -141,6 +164,8 @@ function initAlum() {
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     assignBadge(tabId, tab.windowId);
   });
+
+  updateBadges();
 }
 
 </script>
