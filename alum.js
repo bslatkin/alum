@@ -208,57 +208,55 @@ Slot.rotate = function(positive) {
   }
   bg().Rotating = true;
   var count = Slot.count();
-  if (count == 0) {
+  if (count <= 1) {
+    console.log("One or no slots open");
     return;
   }
-  withForemostTab(function(frontWindow, frontTab) {
+  Slot.withSortedWindows(function(fromWindowArray) {
+    var toWindowArray = fromWindowArray.slice();
+    var dummyWindowId = fromWindowArray[0].id
+    if (positive) {
+      toWindowArray.push(toWindowArray.shift());  // 0 -> N-1
+    } else {
+      toWindowArray.unshift(toWindowArray.pop());  // N-1 -> 0
+    }
+    for (var i = 0; i < toWindowArray.length; ++i) {
+      console.log("Move slot " + i + " from window " + fromWindowArray[i].id +
+                  " to window " + toWindowArray[i].id);
+    }
+    console.log("dummy window: " + dummyWindowId);
 
-  // TODO: Refocus the front tab
-  var frontSlot = bg().WindowMap[frontWindow.id];
-
-    Slot.withSortedWindows(function(fromWindowArray) {
-      var toWindowArray = fromWindowArray.slice();
-      if (positive) {
-        toWindowArray.push(toWindowArray.shift());  // 0 -> N-1
-      } else {
-        toWindowArray.unshift(toWindowArray.pop());  // N-1 -> 0
-      }
-
-      chrome.tabs.create(
-        {"windowId": toWindowArray[0].id,
-         "selected": false,
-         "url": "about:blank" }, function(dummyTab) {
-        var popAndUpdate = function(index, tabIndex) {
-          if (index >= fromWindowArray.length) {
-            chrome.tabs.remove(dummyTab.id, function() {
-              console.log('Rotation done');
-              bg().Rotating = false;
-            });
-            return;
-          }
-          if (tabIndex >= fromWindowArray[index].tabs.length) {
-            console.log('Rotation done for slot index ' + index);
-            popAndUpdate(index+1, 0);
-          } else {
-            console.log('From window: ' + fromWindowArray[index].id + ' to ' +
-                        toWindowArray[index].id);
-            chrome.tabs.move(
-                fromWindowArray[index].tabs[tabIndex].id,
-                {"windowId": toWindowArray[index].id, "index": tabIndex},
-                function() {
-                  popAndUpdate(index, tabIndex+1);
-
-                  // Keep the selected tab selected in the new window.
-                  if (fromWindowArray[index].tabs[tabIndex].selected) {
-                    chrome.tabs.update(
-                        fromWindowArray[index].tabs[tabIndex].id,
-                        {"selected": true});
-                  }
-                });
-          }
+    chrome.tabs.create(
+      {"windowId": dummyWindowId,
+       "selected": true,
+       "url": "about:blank" }, function(dummyTab) {
+      var popAndUpdate = function(index, tabIndex) {
+        if (index >= fromWindowArray.length) {
+          chrome.tabs.remove(dummyTab.id, function() {
+            console.log('Rotation done');
+            bg().Rotating = false;
+          });
+          return;
         }
-        popAndUpdate(0, 0);
-      });
+        if (tabIndex >= fromWindowArray[index].tabs.length) {
+          popAndUpdate(index+1, 0);
+        } else {
+          chrome.tabs.move(
+              fromWindowArray[index].tabs[tabIndex].id,
+              {"windowId": toWindowArray[index].id, "index": tabIndex},
+              function() {
+                popAndUpdate(index, tabIndex+1);
+
+                // Keep the selected tab selected in the new window.
+                if (fromWindowArray[index].tabs[tabIndex].selected) {
+                  chrome.tabs.update(
+                      fromWindowArray[index].tabs[tabIndex].id,
+                      {"selected": true});
+                }
+              });
+        }
+      }
+      popAndUpdate(0, 0);
     });
   });
 }
