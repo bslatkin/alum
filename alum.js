@@ -5,10 +5,6 @@ function bg() {
   return chrome.extension.getBackgroundPage();
 }
 
-function fail(message) {
-  window.alert(message);
-}
-
 function objectSize(obj) {
   var size = 0;
   var key;
@@ -31,14 +27,6 @@ function objectsEqual(first, second) {
     }
   }
   return true;
-}
-
-function withForemostTab(callback) {
-  chrome.windows.getCurrent(function(window) {
-    chrome.tabs.getSelected(window.id, function(tab) {
-      callback(window, tab);
-    });
-  });
 }
 
 // Maps key codes to HTML presentation.
@@ -171,7 +159,6 @@ function loadHotkeyConfig(hotkeyId) {
 ////////////////////////////////////////////////////////////////////////////////
 // Classes
 
-////// Slot
 function Slot(number, windowId) {
   this.number = number;
   if (windowId == null) {
@@ -218,22 +205,17 @@ Slot.rotate = function(positive) {
     if (positive) {
       toWindowArray.push(toWindowArray.shift());  // 0 -> N-1
     } else {
-      toWindowArray.unshift(toWindowArray.pop());  // N-1 -> 0
+      fromWindowArray.reverse();
+      fromWindowArray.unshift(fromWindowArray.pop()); // N-1 -> 0
+      toWindowArray.reverse();
     }
-    for (var i = 0; i < toWindowArray.length; ++i) {
-      console.log("Move slot " + i + " from window " + fromWindowArray[i].id +
-                  " to window " + toWindowArray[i].id);
-    }
-    console.log("dummy window: " + dummyWindowId);
-
     chrome.tabs.create(
       {"windowId": dummyWindowId,
-       "selected": true,
+       "selected": false,
        "url": "about:blank" }, function(dummyTab) {
       var popAndUpdate = function(index, tabIndex) {
         if (index >= fromWindowArray.length) {
           chrome.tabs.remove(dummyTab.id, function() {
-            console.log('Rotation done');
             bg().Rotating = false;
           });
           return;
@@ -298,24 +280,6 @@ Slot.prototype.appendTab = function(tab) {
       index: count+1
     });
   });
-}
-
-Slot.prototype.focus = function() {
-  // chrome.tabs.getSelected(this.windowId, function(tab) {
-  //   console.log("found tab " + tab.id);
-  //   try {
-  //     chrome.tabs.executeScript(
-  //       tab.id,
-  //       {
-  //         code: 'window.focus();'
-  //       },
-  //       function() {
-  //         console.log("all done focusing");
-  //       })
-  //   } catch (e) {
-  //     console.log('Exception doing that: ' + e);
-  //   }
-  // });
 }
 
 Slot.prototype.next = function() {

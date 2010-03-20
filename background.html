@@ -118,9 +118,7 @@ function initAlum() {
     assignBadge(tabId, attachInfo.newWindowId);
   });
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    if (changeInfo.status == "complete") {
-      assignBadge(tabId, tab.windowId);
-    }
+    assignBadge(tabId, tab.windowId);
   });
 }
 
