@@ -193,12 +193,12 @@ Slot.rotate = function(positive) {
     console.log("Already rotating!");
     return;
   }
-  bg().Rotating = true;
   var count = Slot.count();
   if (count <= 1) {
     console.log("One or no slots open");
     return;
   }
+  bg().Rotating = true;
   Slot.withSortedWindows(function(fromWindowArray) {
     var toWindowArray = fromWindowArray.slice();
     var dummyWindowId = fromWindowArray[0].id
@@ -212,7 +212,7 @@ Slot.rotate = function(positive) {
     chrome.tabs.create(
       {"windowId": dummyWindowId,
        "selected": false,
-       "url": "about:blank" }, function(dummyTab) {
+       "url": positive ? "right.html" : "left.html" }, function(dummyTab) {
       var popAndUpdate = function(index, tabIndex) {
         if (index >= fromWindowArray.length) {
           chrome.tabs.remove(dummyTab.id, function() {

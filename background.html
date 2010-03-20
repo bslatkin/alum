@@ -100,6 +100,13 @@ function assignBadge(tabId, windowId) {
 
 function handleRemoveWindow(windowId) {
   Slot.removeWindow(windowId);
+  chrome.windows.getAll({"populate": true}, function(windows) {
+    for (var i = 0; i < windows.length; ++i) {
+      for (var j = 0; j < windows[i].tabs.length; ++j) {
+        assignBadge(windows[i].tabs[j].id, windows[i].tabs[j].windowId);
+      }
+    }
+  });
 }
 
 function initAlum() {
