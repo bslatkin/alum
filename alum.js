@@ -152,7 +152,9 @@ function loadHotkeyConfig(hotkeyId) {
   if (value) {
     return JSON.parse(value);
   } else {
-    return null;
+    // Null means we can't compare to another object, so instead return
+    // an object that's empty and won't match anything.
+    return {};
   }
 }
 
