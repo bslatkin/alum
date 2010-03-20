@@ -9,7 +9,7 @@ h1, h2, h3 {
 }
 
 h2 {
-  margin-top: 2em;
+  margin-top: 1em;
 }
 
 .slot {
@@ -79,9 +79,7 @@ h2 {
   padding-bottom: 1em;
 }
 
-#rotateleft-button,
-#rotateright-button,
-#openall-button {
+#hotkeys table button {
   padding: 7px;
 }
 
@@ -424,7 +422,7 @@ h2 {
     }
   }
 
-  function setKeyClick(title, hotkeyId) {
+  function setKeyClick(title, hotkeyId, modifierOnly) {
     var pressedKeys = {};
     $("#keytitle").html('"' + title + '"');
     $("#currentkeys").html("?");
@@ -444,6 +442,9 @@ h2 {
           });
           $("#currentkeys").html(makeKeyString(pressedKeys));
           if (objectSize(pressedKeys) >= 3 && pressedKeys["KeyCode"]) {
+            if (modifierOnly) {
+              pressedKeys["KeyCode"] = "Number";
+            }
             localStorage.setItem("config:" + hotkeyId,
                                  JSON.stringify(pressedKeys));
             dialog.dialog("close");
@@ -521,17 +522,6 @@ h2 {
         })
         .click(resetGridClick);
 
-    // Open at startup checkbox.
-    $("#openatstartup")
-    .click(function() {
-      localStorage.setItem("config:openatstartup", Boolean($(this).is(":checked")));
-    });
-    if (localStorage.getItem("config:openatstartup")) {
-      $("#openatstartup").attr(
-          "checked",
-          localStorage.getItem("config:openatstartup") == "true");
-    }
-
     // Hot key setup buttons.
     $("#rotateleft-button")
         .addClass("ui-state-default")
@@ -578,6 +568,21 @@ h2 {
         });
     updateHotkeyConfig("openall-keys");
 
+    $("#classify-button")
+        .addClass("ui-state-default")
+        .addClass("ui-corner-all")
+        .addClass("ui-priority-primary")
+        .hover(function() {
+          $(this).addClass("ui-state-hover");
+        }, function() {
+          $(this).removeClass("ui-state-active")
+                 .removeClass("ui-state-hover");
+        })
+        .click(function() {
+          setKeyClick("classify tab", "classify-keys", true);
+        });
+    updateHotkeyConfig("classify-keys");
+
     $(window).unload(function() {
       bg().loadPreferences();
     });
@@ -606,11 +611,6 @@ h2 {
   <button id="newbutton" type="submit">Add Window</button>
 </div>
 
-<div id="checkboxes">
-  <input id="openatstartup" type="checkbox"/>
-  <label for="openatstartup">Open grid windows at launch</label>
-</div>
-
 <h3>Hotkeys</h3>
 <div id="hotkeys">
   <div id="keydialog" style="display: none">
@@ -623,17 +623,22 @@ h2 {
     <tr>
       <td>Rotate right</td>
       <td><button id="rotateleft-button">Set</button></td>
-      <td><div id="rotateleft-keys">Meta + Shift + &larr;</div></td>
+      <td><div id="rotateleft-keys">?</div></td>
     </tr>
     <tr>
       <td>Rotate left</td>
       <td><button id="rotateright-button">Set</button></td>
-      <td><div id="rotateright-keys">Meta + Shift + &rarr;</div></td>
+      <td><div id="rotateright-keys">?</div></td>
     </tr>
     <tr>
       <td>Reset/Open<br>windows</td>
       <td><button id="openall-button">Set</button></td>
-      <td><div id="openall-keys">Alt + Meta + O</div></td>
+      <td><div id="openall-keys">?</div></td>
+    </tr>
+    <tr>
+      <td>Classify tab</td>
+      <td><button id="classify-button">Set</button></td>
+      <td><div id="classify-keys">?</div></td>
     </tr>
   </table>
 </div>

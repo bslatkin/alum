@@ -15,6 +15,7 @@ var Rotating = false;
 var RotateRight = {};
 var RotateLeft = {};
 var OpenAll = {};
+var ClassifyTab = {};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Init/event handling
@@ -59,6 +60,38 @@ function handleHotKey(event) {
     Slot.rotate(true);
   } else if (objectsEqual(pressed, RotateLeft)) {
     Slot.rotate(false);
+  } else if (pressed["KeyCode"]) {
+    var keyCode = pressed["KeyCode"];
+    delete pressed["KeyCode"];
+    delete pressed["RawCode"];
+    if (objectsEqual(pressed, ClassifyTab) &&
+        keyCode >= "0" && keyCode <= "9") {
+      console.log("Classify tab pressed!");
+      var slotNumber = parseInt(keyCode) - 1;
+      var slot = Slot.get(slotNumber);
+      if (!slot) return;  // Hot key for a non-existant slot.
+
+      chrome.windows.getCurrent(function(window) {
+        chrome.tabs.getSelected(window.id, function(tab) {
+          if (slot.windowId == tab.windowId) return;  // Tab already in window.
+          chrome.tabs.getAllInWindow(slot.windowId, function(allTabs) {
+            var done = function() {
+              chrome.tabs.move(
+                  tab.id, {"windowId": slot.windowId, "index": allTabs.length});
+            };
+            chrome.tabs.getAllInWindow(window.id, function(sourceTabs) {
+              if (sourceTabs.length == 1) {
+                // Source window only has one tab, so open a dummy tab to
+                // ensure the window does not disappear.
+                chrome.tabs.create({"windowId": window.id}, done);
+              } else {
+                done();
+              }
+            });
+          });
+        });
+      });
+    }
   }
 }
 
@@ -66,6 +99,9 @@ function loadPreferences() {
   RotateRight = loadHotkeyConfig("rotateleft-keys");
   RotateLeft = loadHotkeyConfig("rotateright-keys");
   OpenAll = loadHotkeyConfig("openall-keys");
+  ClassifyTab = loadHotkeyConfig("classify-keys");
+  delete ClassifyTab["KeyCode"];
+  delete ClassifyTab["RawCode"];
 
   // Set defaults on first load.
   if (!localStorage.getItem("config:columns")) {
