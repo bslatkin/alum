@@ -190,12 +190,10 @@ Slot.get = function(number) {
 
 Slot.rotate = function(positive) {
   if (bg().Rotating) {
-    console.log("Already rotating!");
     return;
   }
   var count = Slot.count();
   if (count <= 1) {
-    console.log("One or no slots open");
     return;
   }
   bg().Rotating = true;
@@ -273,27 +271,26 @@ Slot.removeWindow = function(windowId) {
   delete bg().WindowMap[windowId];
 }
 
-Slot.prototype.appendTab = function(tab) {
-  this.getTabCount(function(count) {
-    chrome.tabs.move(tab.id, {
-      windowId: this.windowId,
-      index: count+1
+Slot.prototype.takeCurrentTab = function() {
+  var slot = this;
+  chrome.windows.getCurrent(function(window) {
+    chrome.tabs.getSelected(window.id, function(tab) {
+      if (slot.windowId == tab.windowId) return;  // Tab already in window.
+      chrome.tabs.getAllInWindow(slot.windowId, function(allTabs) {
+        var done = function() {
+          chrome.tabs.move(
+              tab.id, {"windowId": slot.windowId, "index": allTabs.length});
+        };
+        chrome.tabs.getAllInWindow(window.id, function(sourceTabs) {
+          if (sourceTabs.length == 1) {
+            // Source window only has one tab, so open a dummy tab to
+            // ensure the window does not disappear.
+            chrome.tabs.create({"windowId": window.id}, done);
+          } else {
+            done();
+          }
+        });
+      });
     });
   });
 }
-
-Slot.prototype.next = function() {
-  var count = Slot.count();
-  return (this.number + 1) % count;
-}
-
-Slot.prototype.previous = function() {
-  var count = Slot.count();
-  return (this.number - 1 + count) % count;
-}
-
-Slot.prototype.getTabCount = function(callback) {
-  chrome.tabs.getAllInWindow(this.windowId, function(tabs) {
-    callback(tabs.length);
-  });
-};
