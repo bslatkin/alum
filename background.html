@@ -38,20 +38,30 @@ function openAllWindows(event) {
   var columnWidth = (1.0 * width) / columns;
   var rowHeight = (1.0 * height) / rows;
 
-  function openSlot(next) {
-    var slot = savedSlots[next];
-    chrome.windows.create({
-      left: offsetX + Math.floor(slot.x * columnWidth),
-      top: offsetY + Math.floor(slot.y * rowHeight),
-      width: Math.floor(slot.width * columnWidth),
-      height: Math.floor(slot.height * rowHeight)
-    }, function(window) {
-      Slot.set(new Slot(next, window.id));
-    });
-  }
-  for (var i = 0; i < savedSlots.length; ++i) {
-    openSlot(i);
-  }
+
+  chrome.windows.getLastFocused(function(window) {
+    function openSlot(next) {
+      var slot = savedSlots[next];
+      var func = chrome.windows.create;
+      if (next == 0) {
+        // Use the top most window as the first slot.
+        func = function(updateInfo, callback) {
+          chrome.windows.update(window.id, updateInfo, callback);
+        };
+      }
+      func({
+        left: offsetX + Math.floor(slot.x * columnWidth),
+        top: offsetY + Math.floor(slot.y * rowHeight),
+        width: Math.floor(slot.width * columnWidth),
+        height: Math.floor(slot.height * rowHeight)
+      }, function(window) {
+        Slot.set(new Slot(next, window.id));
+      });
+    }
+    for (var i = 0; i < savedSlots.length; ++i) {
+      openSlot(i);
+    }
+  });
 }
 
 function handleHotKey(event) {
