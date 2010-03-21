@@ -18,12 +18,61 @@ var OpenAll = {};
 var ClassifyTab = {};
 
 ////////////////////////////////////////////////////////////////////////////////
-// Init/event handling
+
+function assignBadge(tabId, windowId) {
+  var slot = WindowMap[windowId];
+  if (slot) {
+    var number = slot.number + 1;
+    chrome.browserAction.setBadgeBackgroundColor({
+      "color": [0, 170, 212, 255],
+      "tabId": tabId,
+    });
+    chrome.browserAction.setBadgeText({
+      "text": "" + number,
+      "tabId": tabId,
+    });
+    chrome.browserAction.setTitle({
+      "title": "Alum window #" + number,
+      "tabId": tabId,
+    });
+  } else {
+    // Clear badge.
+    chrome.browserAction.setBadgeBackgroundColor({
+      "color": [143, 143, 143, 255],
+      "tabId": tabId,
+    });
+    chrome.browserAction.setBadgeText({
+      "text": "X",
+      "tabId": tabId,
+    });
+    chrome.browserAction.setTitle({
+      "title": "Not an Alum window",
+      "tabId": tabId,
+    });
+  }
+}
+
+function updateBadges() {
+  chrome.windows.getAll({"populate": true}, function(windows) {
+    for (var i = 0; i < windows.length; ++i) {
+      for (var j = 0; j < windows[i].tabs.length; ++j) {
+        assignBadge(windows[i].tabs[j].id, windows[i].tabs[j].windowId);
+      }
+    }
+  });
+}
+
 function openAllWindows(event) {
   // If some are already open, do nothing.
-  if (Slot.count() > 0) {
+  var slotCount = Slot.count();
+  if (slotCount > 1) {
     console.log("Some slots already open.");
     return;
+  } else if (slotCount == 1) {
+    // Allow them to reopen all windows when only a single slot is open.
+    SlotMap = {};
+    WindowMap = {};
+    Rotating = false;
   }
 
   var columns = localStorage.getItem("config:columns");
@@ -37,7 +86,6 @@ function openAllWindows(event) {
   var offsetY = window.screen.height - height;
   var columnWidth = (1.0 * width) / columns;
   var rowHeight = (1.0 * height) / rows;
-
 
   chrome.windows.getLastFocused(function(window) {
     function openSlot(next) {
@@ -56,6 +104,10 @@ function openAllWindows(event) {
         height: Math.floor(slot.height * rowHeight)
       }, function(window) {
         Slot.set(new Slot(next, window.id));
+        if (next == 0) {
+          // Assign a badge to the first stolen window.
+          updateBadges();
+        }
       });
     }
     for (var i = 0; i < savedSlots.length; ++i) {
@@ -109,49 +161,6 @@ function loadPreferences() {
           {"x":2,"y":0,"width":2,"height":3}
         ]));
   }
-}
-
-function assignBadge(tabId, windowId) {
-  var slot = WindowMap[windowId];
-  if (slot) {
-    var number = slot.number + 1;
-    chrome.browserAction.setBadgeBackgroundColor({
-      "color": [0, 170, 212, 255],
-      "tabId": tabId,
-    });
-    chrome.browserAction.setBadgeText({
-      "text": "" + number,
-      "tabId": tabId,
-    });
-    chrome.browserAction.setTitle({
-      "title": "Alum window #" + number,
-      "tabId": tabId,
-    });
-  } else {
-    // Clear badge.
-    chrome.browserAction.setBadgeBackgroundColor({
-      "color": [143, 143, 143, 255],
-      "tabId": tabId,
-    });
-    chrome.browserAction.setBadgeText({
-      "text": "X",
-      "tabId": tabId,
-    });
-    chrome.browserAction.setTitle({
-      "title": "Not an Alum window",
-      "tabId": tabId,
-    });
-  }
-}
-
-function updateBadges() {
-  chrome.windows.getAll({"populate": true}, function(windows) {
-    for (var i = 0; i < windows.length; ++i) {
-      for (var j = 0; j < windows[i].tabs.length; ++j) {
-        assignBadge(windows[i].tabs[j].id, windows[i].tabs[j].windowId);
-      }
-    }
-  });
 }
 
 function handleRemoveWindow(windowId) {

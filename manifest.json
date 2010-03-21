@@ -1,6 +1,6 @@
 {
   "name": "Alum: Window and tab manager",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Organize your screen into work zones and quickly switch between them.",
   "icons": {
     "48": "logo-48.png",
