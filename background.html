@@ -122,6 +122,7 @@ function createSlotContextMenuItem(slotId) {
 
 function removeSlotContextMenuItem(slotId) {
   if (SlotMenuItems.length > 0) {
+    console.log('removing menu item for slot Id: ' + slotId);
     chrome.contextMenus.remove(SlotMenuItems.pop());
   }
   if (SlotMenuItems.length == 0) {
@@ -238,9 +239,10 @@ function loadPreferences() {
 }
 
 function handleRemoveWindow(windowId) {
-  Slot.removeWindow(windowId);
-  updateBadges();
-  removeSlotContextMenuItem();
+  if (Slot.removeWindow(windowId)) {
+    updateBadges();
+    removeSlotContextMenuItem();
+  }
 }
 
 function initAlum() {

@@ -253,7 +253,7 @@ Slot.withSortedWindows = function(callback) {
 
 Slot.removeWindow = function(windowId) {
   var removeSlot = bg().WindowMap[windowId];
-  if (!removeSlot) return;
+  if (!removeSlot) return false;
   var count = Slot.count();
   var newNumber = 0;
   for (var i = 0; i < count; ++i) {
@@ -265,6 +265,7 @@ Slot.removeWindow = function(windowId) {
   }
   delete bg().SlotMap[newNumber];
   delete bg().WindowMap[windowId];
+  return true;
 }
 
 Slot.moveClosure = function(i, fromContextMenu) {
