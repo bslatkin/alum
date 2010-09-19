@@ -114,12 +114,6 @@ function getPressedKeys(event) {
   } else {
     inputKey = String.fromCharCode(event.keyCode);
   }
-  // console.log("key: " + inputKey +
-  //   ", shift " + event.shiftKey +
-  //   ", ctrl " + event.ctrlKey +
-  //   ", alt " + event.altKey +
-  //   ", meta " + event.metaKey +
-  //   ", raw " + event.keyCode);
   var pressed = {
     "RawCode": event.keyCode
   };
@@ -273,18 +267,23 @@ Slot.removeWindow = function(windowId) {
   delete bg().WindowMap[windowId];
 }
 
-Slot.moveClosure = function(i) {
+Slot.moveClosure = function(i, fromContextMenu) {
   return function() {
     var slot = Slot.get(i);
     if (!slot) return;  // Non-existant slot.
-    slot.takeCurrentTab();
+    slot.takeCurrentTab(fromContextMenu);
   }
 }
 
-Slot.prototype.takeCurrentTab = function() {
+Slot.prototype.takeCurrentTab = function(fromContextMenu) {
   var slot = this;
-  chrome.windows.getCurrent(function(window) {
-    chrome.tabs.getSelected(window.id, function(tab) {
+  chrome.windows.getLastFocused(function(window) {
+    var windowId = window.id;
+    if (fromContextMenu) {
+      windowId = bg().RightClickWindowId;
+    }
+
+    chrome.tabs.getSelected(windowId, function(tab) {
       if (slot.windowId == tab.windowId) return;  // Tab already in window.
       chrome.tabs.getAllInWindow(slot.windowId, function(allTabs) {
         var done = function() {
@@ -301,11 +300,11 @@ Slot.prototype.takeCurrentTab = function() {
                 }
               });
         };
-        chrome.tabs.getAllInWindow(window.id, function(sourceTabs) {
+        chrome.tabs.getAllInWindow(windowId, function(sourceTabs) {
           if (sourceTabs.length == 1) {
             // Source window only has one tab, so open a dummy tab to
             // ensure the window does not disappear.
-            chrome.tabs.create({"windowId": window.id}, done);
+            chrome.tabs.create({"windowId": windowId}, done);
           } else {
             done();
           }

@@ -22,6 +22,7 @@ var ClassifyTab = {};
 var RootContextMenu = null;
 var MoveTabSeparator = null;
 var SlotMenuItems = [];  // List of menu IDs
+var RightClickWindowId = null;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -91,7 +92,7 @@ function setupContextMenu() {
   chrome.contextMenus.create({
     title: "Rotate right \u2192",
     contexts: ["all"],
-    onclick: function() { Slot.rotate(true); },
+    onclick: function(x) { Slot.rotate(true); },
     parentId: RootContextMenu
   });
   chrome.contextMenus.create({
@@ -113,7 +114,7 @@ function createSlotContextMenuItem(slotId) {
   var menuId = chrome.contextMenus.create({
     title: "Move tab to Window " + (slotId + 1),
     contexts: ["all"],
-    onclick: Slot.moveClosure(slotId),
+    onclick: Slot.moveClosure(slotId, true),
     parentId: RootContextMenu
   });
   SlotMenuItems.push(menuId);
@@ -133,7 +134,6 @@ function openAllWindows(event) {
   // If some are already open, do nothing.
   var slotCount = Slot.count();
   if (slotCount > 1) {
-    console.log("Some slots already open.");
     return;
   } else if (slotCount == 1) {
     // Allow them to reopen all windows when only a single slot is open.
@@ -206,6 +206,12 @@ function handleHotKey(event) {
   }
 }
 
+// NOTE: This is a hack until the contextMenu API supports windowId
+// in the OnClickData it passes to event handlers.
+function handleRightClick(windowId) {
+  RightClickWindowId = windowId;
+}
+
 function loadPreferences() {
   RotateRight = loadHotkeyConfig("rotateleft-keys");
   RotateLeft = loadHotkeyConfig("rotateright-keys");
@@ -241,7 +247,13 @@ function initAlum() {
   loadPreferences();
 
   chrome.extension.onRequest.addListener(function(request, sender, unused) {
-    handleHotKey(request);
+    if (request.type == "key event") {
+      handleHotKey(request);
+    } else if (request.type == "right-click event") {
+      // NOTE: Passing through the sender tab should not be necessary once
+      // the contextMenu API passes windowId in the context menu OnClickData.
+      handleRightClick(sender.tab.windowId);
+    }
   });
   chrome.windows.onRemoved.addListener(function(windowId) {
     handleRemoveWindow(windowId);
