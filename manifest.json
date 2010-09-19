@@ -1,8 +1,9 @@
 {
   "name": "Alum: Window and tab manager",
-  "version": "0.1.3",
+  "version": "0.2",
   "description": "Organize your screen into work zones and quickly switch between them.",
   "icons": {
+    "16": "logo-16.png",
     "48": "logo-48.png",
     "128": "logo-128.png"
   },
@@ -29,6 +30,7 @@
   "permissions": [
       "tabs",
       "http://*/*",
-      "https://*/*"
+      "https://*/*",
+      "contextMenus"
       ]
 }

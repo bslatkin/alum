@@ -20,8 +20,8 @@ hr {
   border-top: 1px solid #999;
 }
 </style>
-<link type="text/css" href="jquery-ui-1.7.2.custom.css" rel="stylesheet" />	
-<script type="text/javascript" src="jquery-1.3.2.min.js"></script>
+<link type="text/css" href="jquery-ui-1.7.2.custom.css" rel="stylesheet" />
+<script type="text/javascript" src="jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="jquery-ui-1.7.2.custom.min.js"></script>
 <script type="text/javascript" src="json2.js"></script>
 <script type="text/javascript" src="alum.js"></script>
@@ -77,14 +77,6 @@ $(document).ready(function() {
         Slot.rotate(false);
       });
 
-  function moveClosure(i) {
-    return function() {
-      var slot = Slot.get(i);
-      if (!slot) return;  // Non-existant slot.
-      slot.takeCurrentTab();
-    }
-  }
-
   var count = Slot.count();
   if (count > 0) {
     $("#classify-buttons").before("<hr size='0'><div>Move tab to:</div>");
@@ -99,7 +91,7 @@ $(document).ready(function() {
           $(this).removeClass("ui-state-active")
                  .removeClass("ui-state-hover");
         })
-        .click(moveClosure(i))
+        .click(Slot.moveClosure(i))
         .appendTo("#classify-buttons");
     }
   }

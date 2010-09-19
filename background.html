@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<script type="text/javascript" src="jquery-1.4.2.min.js"></script>
 <script src="alum.js" type="text/javascript" charset="utf-8"></script>
 <script type="text/javascript" charset="utf-8">
 
@@ -16,6 +17,11 @@ var RotateRight = {};
 var RotateLeft = {};
 var OpenAll = {};
 var ClassifyTab = {};
+
+// Context menus
+var RootContextMenu = null;
+var MoveTabSeparator = null;
+var SlotMenuItems = [];  // List of menu IDs
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -60,6 +66,67 @@ function updateBadges() {
       }
     }
   });
+}
+
+function setupContextMenu() {
+  SlotMenuItems = [];
+
+  RootContextMenu = chrome.contextMenus.create({
+    title: "Alum",
+    contexts: ["all"]
+  });
+
+  // Constant menu items
+  chrome.contextMenus.create({
+    title: "Open windows",
+    contexts: ["all"],
+    onclick: function() { bg().openAllWindows() },
+    parentId: RootContextMenu
+  });
+  chrome.contextMenus.create({
+    type: "separator",
+    contexts: ["all"],
+    parentId: RootContextMenu
+  });
+  chrome.contextMenus.create({
+    title: "Rotate right \u2192",
+    contexts: ["all"],
+    onclick: function() { Slot.rotate(true); },
+    parentId: RootContextMenu
+  });
+  chrome.contextMenus.create({
+    title: "\u2190 Rotate left",
+    contexts: ["all"],
+    onclick: function() { Slot.rotate(false); },
+    parentId: RootContextMenu
+  });
+}
+
+function createSlotContextMenuItem(slotId) {
+  if (SlotMenuItems.length == 0) {
+    MoveTabSeparator = chrome.contextMenus.create({
+      type: "separator",
+      contexts: ["all"],
+      parentId: RootContextMenu
+    });
+  }
+  var menuId = chrome.contextMenus.create({
+    title: "Move tab to Window " + (slotId + 1),
+    contexts: ["all"],
+    onclick: Slot.moveClosure(slotId),
+    parentId: RootContextMenu
+  });
+  SlotMenuItems.push(menuId);
+}
+
+function removeSlotContextMenuItem(slotId) {
+  if (SlotMenuItems.length > 0) {
+    chrome.contextMenus.remove(SlotMenuItems.pop());
+  }
+  if (SlotMenuItems.length == 0) {
+    chrome.contextMenus.remove(MoveTabSeparator);
+    MoveTabSeparator = null;
+  }
 }
 
 function openAllWindows(event) {
@@ -112,6 +179,7 @@ function openAllWindows(event) {
     }
     for (var i = 0; i < savedSlots.length; ++i) {
       openSlot(i);
+      createSlotContextMenuItem(i);
     }
   });
 }
@@ -166,6 +234,7 @@ function loadPreferences() {
 function handleRemoveWindow(windowId) {
   Slot.removeWindow(windowId);
   updateBadges();
+  removeSlotContextMenuItem();
 }
 
 function initAlum() {
@@ -185,6 +254,7 @@ function initAlum() {
   });
 
   updateBadges();
+  setupContextMenu();
 }
 
 </script>

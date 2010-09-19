@@ -273,6 +273,14 @@ Slot.removeWindow = function(windowId) {
   delete bg().WindowMap[windowId];
 }
 
+Slot.moveClosure = function(i) {
+  return function() {
+    var slot = Slot.get(i);
+    if (!slot) return;  // Non-existant slot.
+    slot.takeCurrentTab();
+  }
+}
+
 Slot.prototype.takeCurrentTab = function() {
   var slot = this;
   chrome.windows.getCurrent(function(window) {
